@@ -24,10 +24,13 @@ type Certification = {
   provider: string;
   name: string;
   code: string;
+  type: "foundational" | "associate" | "professional" | "specialty";
   description: string | null;
 };
 
 type SelectionMode = "manual" | "random";
+type Difficulty = "all" | "easy" | "medium" | "hard";
+type QuestionType = "all" | "single" | "multiple";
 
 const SETTINGS = [
   ["fullscreen", "Fullscreen"],
@@ -65,9 +68,9 @@ export default function MockBuilder({
 
   const [search, setSearch] = useState("");
   const [difficulty, setDifficulty] =
-    useState("all");
+    useState<Difficulty>("all");
   const [questionType, setQuestionType] =
-    useState("all");
+    useState<QuestionType>("all");
   const [category, setCategory] =
     useState("all");
 
@@ -513,6 +516,7 @@ export default function MockBuilder({
                         {
                           certification.name
                         }
+                        {" ("}{certification.type}{")"}
                       </option>
                     ),
                   )}
@@ -529,6 +533,12 @@ export default function MockBuilder({
                           certificationId,
                       )?.code
                     }
+                    {" · "}
+                    {certifications.find(
+                      (item) =>
+                        item.id ===
+                        certificationId,
+                    )?.type}
                   </p>
 
                   <p className="mt-1 text-xs text-gray-500">
@@ -753,7 +763,7 @@ export default function MockBuilder({
                       value={difficulty}
                       onChange={(event) =>
                         setDifficulty(
-                          event.target.value,
+                          event.target.value as Difficulty,
                         )
                       }
                       className="input"
@@ -776,7 +786,7 @@ export default function MockBuilder({
                       value={questionType}
                       onChange={(event) =>
                         setQuestionType(
-                          event.target.value,
+                          event.target.value as QuestionType,
                         )
                       }
                       className="input"

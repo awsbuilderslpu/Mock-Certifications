@@ -27,6 +27,7 @@ type CSVRow = {
   correct_answers: string;
   difficulty?: "easy" | "medium" | "hard";
   category?: string;
+  explanation?: string;
 };
 
 type ParsedRow = CSVRow & {
@@ -50,6 +51,7 @@ const REQUIRED_HEADERS = [
   "correct_answers",
   "difficulty",
   "category",
+  "explanation",
 ] as const;
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -57,6 +59,7 @@ const MAX_ROWS = 500;
 const MAX_QUESTION_LENGTH = 5000;
 const MAX_OPTION_LENGTH = 1000;
 const MAX_CATEGORY_LENGTH = 100;
+const MAX_EXPLANATION_LENGTH = 5000;
 const MAX_FIELD_LENGTH = 5000;
 
 function normalizeString(value: unknown): string {
@@ -86,6 +89,7 @@ function validateRow(
     row.difficulty,
   );
   const category = normalizeString(row.category);
+  const explanation = normalizeString(row.explanation);
 
   if (!question) {
     errors.push("Question is missing");
@@ -200,6 +204,12 @@ function validateRow(
     errors.push("Category value is too long");
   }
 
+  if (explanation.length > MAX_EXPLANATION_LENGTH) {
+    errors.push(
+      `Explanation exceeds ${MAX_EXPLANATION_LENGTH} characters`,
+    );
+  }
+
   return {
     question,
     opt1,
@@ -218,6 +228,7 @@ function validateRow(
         ? difficulty
         : undefined,
     category: category || undefined,
+    explanation: explanation || undefined,
     rowNumber,
     errors,
   };
@@ -395,7 +406,7 @@ export default function ImportQuestionsPage() {
                 .slice(0, 10)
                 .map(
                   (error) =>
-                    `CSV row ${error.row + 2}: ${error.message}`,
+                    `CSV row ${(error.row ?? 0) + 2}: ${error.message}`,
                 );
 
             setParsing(false);
@@ -555,8 +566,6 @@ export default function ImportQuestionsPage() {
     const cleanRows: CSVRow[] =
       validRows.map(
         ({
-          rowNumber,
-          errors,
           question,
           opt1,
           opt2,
@@ -566,6 +575,7 @@ export default function ImportQuestionsPage() {
           correct_answers,
           difficulty,
           category,
+          explanation,
         }) => ({
           question,
           opt1,
@@ -576,6 +586,7 @@ export default function ImportQuestionsPage() {
           correct_answers,
           difficulty,
           category,
+          explanation,
         }),
       );
 
@@ -617,6 +628,7 @@ export default function ImportQuestionsPage() {
         "correct_answers",
         "difficulty",
         "category",
+        "explanation",
       ],
       [
         "What is AWS Lambda?",
@@ -628,6 +640,7 @@ export default function ImportQuestionsPage() {
         "1",
         "easy",
         "Compute",
+        "Lambda runs code without provisioning servers.",
       ],
       [
         "Which are AWS compute services?",
@@ -639,6 +652,7 @@ export default function ImportQuestionsPage() {
         "1,3",
         "medium",
         "Compute",
+        "EC2 and Lambda are compute services; S3 and RDS are not.",
       ],
     ];
 
@@ -960,7 +974,7 @@ export default function ImportQuestionsPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1000px] text-left">
+              <table className="w-full min-w-250 text-left">
                 <thead>
                   <tr className="border-b border-[#2d3544] font-mono text-[10px] uppercase tracking-wider text-gray-500">
                     <th className="px-5 py-4">
@@ -1081,9 +1095,9 @@ export default function ImportQuestionsPage() {
             <code className="block min-w-max font-mono text-xs leading-7 text-gray-400">
               question,opt1,opt2,opt3,opt4,question_type,correct_answers,difficulty,category
               <br />
-              "What is AWS Lambda?","Compute","Storage","Database","Network","single","1","easy","Compute"
+              {'"What is AWS Lambda?","Compute","Storage","Database","Network","single","1","easy","Compute"'}
               <br />
-              "Which are compute services?","EC2","S3","Lambda","RDS","multiple","1,3","medium","Compute"
+              {'"Which are compute services?","EC2","S3","Lambda","RDS","multiple","1,3","medium","Compute"'}
             </code>
           </div>
         </section>

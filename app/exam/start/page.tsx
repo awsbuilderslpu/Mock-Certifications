@@ -128,7 +128,7 @@ export default async function StartExamPage({
     );
   }
 
-  if (Date.now() >= endsAt) {
+  if (new Date().getTime() >= endsAt) {
     redirect("/mocks");
   }
 

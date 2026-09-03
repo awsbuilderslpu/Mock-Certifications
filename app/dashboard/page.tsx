@@ -2,6 +2,30 @@ import Link from "next/link";
 import { requireAuth } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
+type DashboardMock = {
+  id: string;
+  title: string;
+  duration_minutes?: number;
+  passing_score?: number | null;
+};
+
+type DashboardSlot = {
+  id: string;
+  starts_at: string;
+  ends_at: string;
+  status: string;
+  mocks: DashboardMock | DashboardMock[] | null;
+};
+
+type DashboardAttempt = {
+  id: string;
+  mock_id: string;
+  percentage: number | null;
+  status: string;
+  submitted_at: string | null;
+  mocks: Pick<DashboardMock, "id" | "title"> | Pick<DashboardMock, "id" | "title">[] | null;
+};
+
 export default async function DashboardPage() {
   const user = await requireAuth();
   const supabase = await createClient();
@@ -12,8 +36,8 @@ export default async function DashboardPage() {
   /*
    * Exam data is only relevant to admin/core.
    */
-  let upcomingSlots: any[] = [];
-  let recentAttempts: any[] = [];
+  let upcomingSlots: DashboardSlot[] = [];
+  let recentAttempts: DashboardAttempt[] = [];
 
   if (isAdmin || isCore) {
     const now = new Date().toISOString();
@@ -144,8 +168,8 @@ function AdminDashboard({
   upcomingSlots,
   recentAttempts,
 }: {
-  upcomingSlots: any[];
-  recentAttempts: any[];
+  upcomingSlots: DashboardSlot[];
+  recentAttempts: DashboardAttempt[];
 }) {
   return (
     <>
@@ -225,8 +249,8 @@ function CoreDashboard({
   upcomingSlots,
   recentAttempts,
 }: {
-  upcomingSlots: any[];
-  recentAttempts: any[];
+  upcomingSlots: DashboardSlot[];
+  recentAttempts: DashboardAttempt[];
 }) {
   return (
     <>
@@ -272,7 +296,7 @@ function CoreDashboard({
 
         <p className="mt-2 max-w-xl text-sm text-gray-400">
           Scheduled examinations will appear here when
-          they're available.
+          they&apos;re available.
         </p>
 
         <Link
@@ -304,7 +328,7 @@ function MemberDashboard() {
           </p>
 
           <h2 className="mt-4 text-2xl font-bold">
-            You're signed in.
+            You&apos;re signed in.
           </h2>
 
           <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-400">
@@ -358,7 +382,7 @@ function MemberDashboard() {
 function UpcomingExams({
   slots,
 }: {
-  slots: any[];
+  slots: DashboardSlot[];
 }) {
   return (
     <section className="border border-[#2d3544] bg-[#151e2d]">
@@ -436,7 +460,7 @@ function UpcomingExams({
 function RecentAttempts({
   attempts,
 }: {
-  attempts: any[];
+  attempts: DashboardAttempt[];
 }) {
   return (
     <section className="border border-[#2d3544] bg-[#151e2d]">

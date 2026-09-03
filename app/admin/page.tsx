@@ -125,6 +125,13 @@ export default async function AdminPage() {
               />
 
               <AdminCard
+                href="/admin/certifications"
+                label="Certifications"
+                description="Manage active and historical certification definitions used across the platform."
+                action="Manage Certifications"
+              />
+
+              <AdminCard
                 href="/admin/mocks"
                 label="Mock Examinations"
                 description="Create mocks, configure restrictions, select questions, and publish examinations."

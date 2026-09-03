@@ -505,6 +505,7 @@ export async function submitAttempt(
   _autoSubmitted = false,
 ): Promise<ActionResult> {
   const user = await requireCore();
+  void _autoSubmitted;
   const supabase = await createClient();
 
   if (!isValidUuid(attemptId)) {

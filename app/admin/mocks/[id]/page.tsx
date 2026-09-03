@@ -16,6 +16,7 @@ interface Question {
   question_type: string;
   difficulty: string | null;
   category: string | null;
+  explanation: string | null;
   question_options: QuestionOption[];
 }
 
@@ -52,6 +53,7 @@ export default async function MockDetailPage({
           question_type,
           difficulty,
           category,
+          explanation,
           question_options (
             id,
             option_text,
@@ -88,6 +90,7 @@ export default async function MockDetailPage({
         question_type: question.question_type,
         difficulty: question.difficulty,
         category: question.category,
+        explanation: question.explanation,
         question_options: Array.isArray(
           question.question_options,
         )

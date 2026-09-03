@@ -124,7 +124,7 @@ export default async function AdminResultsPage() {
 
             {attempts && attempts.length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[900px] border-collapse text-sm">
+                <table className="w-full min-w-225 border-collapse text-sm">
                   <thead>
                     <tr className="border-b border-[#2d3544] text-left">
                       <th className="px-5 py-4 font-mono text-[10px] uppercase tracking-widest text-[#6b7280]">

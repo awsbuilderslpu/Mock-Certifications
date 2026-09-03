@@ -81,6 +81,7 @@ export default async function AdminResultDetailPage({
         question_type,
         difficulty,
         category,
+        explanation,
         question_options (
           id,
           option_text,
@@ -469,6 +470,17 @@ export default async function AdminResultDetailPage({
                             },
                           )}
                       </div>
+
+                      {question.explanation && (
+                        <details className="mt-4 border border-[#3b4556]">
+                          <summary className="cursor-pointer px-4 py-3 font-mono text-xs uppercase tracking-wider text-[#ff9900]">
+                            View Explanation
+                          </summary>
+                          <p className="border-t border-[#3b4556] px-4 py-4 text-sm leading-6 text-gray-300">
+                            {question.explanation}
+                          </p>
+                        </details>
+                      )}
 
                       {answer?.answered_at && (
                         <div className="mt-3 font-mono text-[10px] text-[#6b7280]">

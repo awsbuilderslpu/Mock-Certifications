@@ -69,7 +69,7 @@ export default async function AdminSlotsPage() {
         ) : (
           <div className="border border-[#2d3544] bg-[#151e2d]">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-left">
+              <table className="w-full min-w-200 text-left">
                 <thead>
                   <tr className="border-b border-[#2d3544] font-mono text-[10px] uppercase tracking-wider text-gray-500">
                     <th className="px-5 py-4">

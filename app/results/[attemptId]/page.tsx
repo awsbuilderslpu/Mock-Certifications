@@ -51,13 +51,26 @@ type MockQuestion = {
   question:
     | {
         id: string;
+        question_text: string;
         category: string | null;
+        explanation: string | null;
+        question_options: QuestionOption[];
       }
     | {
         id: string;
+        question_text: string;
         category: string | null;
+        explanation: string | null;
+        question_options: QuestionOption[];
       }[]
     | null;
+};
+
+type QuestionOption = {
+  id: string;
+  option_text: string;
+  option_order: number;
+  is_correct: boolean;
 };
 
 function getSingleRelation<T>(
@@ -159,7 +172,6 @@ export default async function ResultsPage({
   }
 
   const mock = getSingleRelation(attempt.mocks);
-  const slot = getSingleRelation(attempt.exam_slots);
 
   // ---------------------------------------------------------
   // FETCH ANSWERS
@@ -198,7 +210,15 @@ export default async function ResultsPage({
         question_order,
         question:questions (
           id,
-          category
+          question_text,
+          category,
+          explanation,
+          question_options (
+            id,
+            option_text,
+            option_order,
+            is_correct
+          )
         )
       `,
     )
@@ -615,6 +635,98 @@ export default async function ResultsPage({
           </section>
 
           {/* CATEGORY PERFORMANCE */}
+
+          <section className="mt-5 border border-[#3b4556] bg-[#151e2d]">
+            <div className="border-b border-[#3b4556] px-5 py-4">
+              <div className="font-mono text-xs uppercase tracking-wider text-gray-400">
+                Question Review
+              </div>
+            </div>
+
+            <div className="divide-y divide-[#2d3544]">
+              {questions.map((item, index) => {
+                const question = getSingleRelation(item.question);
+
+                if (!question) {
+                  return null;
+                }
+
+                const answer = answerMap.get(item.question_id);
+                const selectedIds = answer?.selected_options ?? [];
+                const correctIds = question.question_options
+                  .filter((option) => option.is_correct)
+                  .map((option) => option.id);
+                const isUnanswered = selectedIds.length === 0;
+                const isCorrect = answer?.is_correct === true;
+
+                return (
+                  <div key={question.id} className="p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="font-mono text-xs uppercase tracking-widest text-[#6b7280]">
+                          Question {index + 1}
+                        </div>
+                        <h2 className="mt-2 text-base font-medium leading-relaxed">
+                          {question.question_text}
+                        </h2>
+                      </div>
+                      <span className={`shrink-0 border px-2 py-1 font-mono text-[10px] uppercase ${
+                        isUnanswered
+                          ? "border-yellow-500/50 text-yellow-400"
+                          : isCorrect
+                            ? "border-green-500/50 text-green-400"
+                            : "border-red-500/50 text-red-400"
+                      }`}>
+                        {isUnanswered ? "Unanswered" : isCorrect ? "Correct" : "Incorrect"}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 space-y-2">
+                      {[...question.question_options]
+                        .sort((a, b) => a.option_order - b.option_order)
+                        .map((option, optionIndex) => {
+                          const selected = selectedIds.includes(option.id);
+                          return (
+                            <div
+                              key={option.id}
+                              className={`flex items-start gap-3 border p-3 ${
+                                option.is_correct
+                                  ? "border-green-500/50 bg-green-500/5"
+                                  : selected
+                                    ? "border-red-500/50 bg-red-500/5"
+                                    : "border-[#2d3544]"
+                              }`}
+                            >
+                              <span className="font-mono text-xs text-[#6b7280]">
+                                {String.fromCharCode(65 + optionIndex)}
+                              </span>
+                              <span className="flex-1 text-sm">
+                                {option.option_text}
+                              </span>
+                              <div className="flex gap-2 font-mono text-[9px] uppercase">
+                                {selected && <span className="text-white">Selected</span>}
+                                {option.is_correct && <span className="text-green-400">Correct</span>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+
+                    {question.explanation && (
+                      <details className="mt-4 border border-[#3b4556]">
+                        <summary className="cursor-pointer px-4 py-3 font-mono text-xs uppercase tracking-wider text-[#ff9900]">
+                          View Explanation
+                        </summary>
+                        <p className="border-t border-[#3b4556] px-4 py-4 text-sm leading-6 text-gray-300">
+                          {question.explanation}
+                        </p>
+                      </details>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
 
           {categoryPerformance.length > 0 && (
             <section className="mt-5 border border-[#3b4556] bg-[#151e2d]">

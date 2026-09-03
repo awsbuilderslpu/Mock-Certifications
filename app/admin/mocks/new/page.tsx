@@ -33,7 +33,7 @@ export default async function NewMockPage() {
     supabase
       .from("certifications")
       .select(
-        "id, provider, name, code, description",
+        "id, provider, name, code, type, description",
       )
       .eq("active", true)
       .order("provider", {

@@ -96,7 +96,7 @@ export default function LoginPage() {
               {/* Header */}
               <div className="border-b border-[#2d3544] px-7 py-6">
                 <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ff9900]">
-                  // AUTHENTICATION
+                  {/* // AUTHENTICATION */}
                 </p>
 
                 <h2 className="mt-3 font-mono text-2xl">

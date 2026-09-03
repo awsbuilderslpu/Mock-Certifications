@@ -204,7 +204,7 @@ export default async function ExamPage({
     endsAt,
   );
 
-  if (Date.now() >= deadline) {
+  if (new Date().getTime() >= deadline) {
     redirect(`/results/${attempt.id}`);
   }
 

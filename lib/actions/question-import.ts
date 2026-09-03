@@ -14,6 +14,7 @@ export type ImportRow = {
   correct_answers: string;
   difficulty?: "easy" | "medium" | "hard";
   category?: string;
+  explanation?: string;
 };
 
 type ImportResult = {
@@ -129,6 +130,12 @@ function validateRow(
     );
   }
 
+  if (row.explanation && row.explanation.trim().length > 5000) {
+    errors.push(
+      `Row ${rowNumber}: explanation cannot exceed 5,000 characters`,
+    );
+  }
+
   return errors;
 }
 
@@ -183,6 +190,22 @@ export async function importQuestions(
 
   const supabase = await createClient();
 
+  const { data: certification, error: certificationError } =
+    await supabase
+      .from("certifications")
+      .select("id")
+      .eq("id", certificationId)
+      .eq("active", true)
+      .maybeSingle();
+
+  if (certificationError || !certification) {
+    return {
+      success: false,
+      imported: 0,
+      errors: ["Certification does not exist or is inactive."],
+    };
+  }
+
   const payload = rows.map((row) => ({
     question: row.question.trim(),
 
@@ -204,6 +227,9 @@ export async function importQuestions(
 
     category:
       row.category?.trim() || null,
+
+    explanation:
+      row.explanation?.trim() || null,
   }));
 
   const { data, error } =

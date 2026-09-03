@@ -21,30 +21,6 @@ function isValidDate(value: unknown): value is string {
   );
 }
 
-function normalizeSettings(
-  value: unknown,
-): Record<string, boolean> {
-  if (
-    !value ||
-    typeof value !== "object" ||
-    Array.isArray(value)
-  ) {
-    return {};
-  }
-
-  const settings: Record<string, boolean> = {};
-
-  for (const [key, setting] of Object.entries(
-    value as Record<string, unknown>,
-  )) {
-    if (typeof setting === "boolean") {
-      settings[key] = setting;
-    }
-  }
-
-  return settings;
-}
-
 export default async function MocksPage() {
   const user = await requireCore();
   const supabase = await createClient();

@@ -382,7 +382,7 @@ export async function updateMock({
   settings?: unknown;
   certificationId: string;
 }) {
-  const user = await requireAdmin();
+  await requireAdmin();
   const supabase = await createClient();
 
   if (!isUuid(mockId)) {

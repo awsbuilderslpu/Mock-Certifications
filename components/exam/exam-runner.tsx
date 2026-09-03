@@ -761,6 +761,8 @@ export default function ExamRunner({
     registerViolation,
     securityState,
     settings.detect_tab_switch,
+    fullscreenRequired,
+    screenShareRequired,
   ]);
 
   /*
@@ -1221,12 +1223,11 @@ export default function ExamRunner({
     setSaving(true);
 
     try {
-      await saveAttemptAnswer({
+      await saveAttemptAnswer(
         attemptId,
-        questionId:
-          currentQuestion.id,
-        selectedOptions: selected,
-      });
+        currentQuestion.id,
+        selected,
+      );
     } finally {
       setSaving(false);
     }
@@ -1271,11 +1272,7 @@ export default function ExamRunner({
    */
 
   if (securityState !== "ready") {
-    const screenShareReady =
-      screenShareActive &&
-      Boolean(
-        screenStreamRef.current,
-      );
+    const screenShareReady = screenShareActive;
 
     const fullscreenReady =
       fullscreenActive;
@@ -1436,7 +1433,7 @@ export default function ExamRunner({
                   <strong className="text-gray-400">
                     Screen sharing:
                   </strong>{" "}
-                  Your browser's native screen-sharing
+                  Your browser&apos;s native screen-sharing
                   dialog will appear first. Keep sharing
                   active for the entire examination. The
                   application does not record, upload, or

@@ -4,27 +4,39 @@ import Link from "next/link";
 const features = [
   {
     number: "01",
-    title: "MOCK EXAMS",
+    title: "500+ QUESTIONS",
     description:
-      "Practice through structured AWS-focused mock examinations created for the LPU community.",
+      "A growing certification-focused question bank covering AWS services, domains, difficulty levels, and real exam-style scenarios.",
   },
   {
     number: "02",
-    title: "QUESTION BANK",
+    title: "FULL MOCK EXAMS",
     description:
-      "A growing collection of curated questions organized around AWS services and certification domains.",
+      "Structured, timed mock examinations designed to turn your preparation into measurable exam readiness.",
   },
   {
     number: "03",
-    title: "TIMED SESSIONS",
+    title: "DETAILED EXPLANATIONS",
     description:
-      "Take scheduled examinations inside controlled time windows with automatic submission.",
+      "Review your answers after submission and understand why each option is correct or incorrect.",
   },
   {
     number: "04",
-    title: "PERFORMANCE",
+    title: "PERFORMANCE TRACKING",
     description:
-      "Review your score, answers, attempts, and performance after completing a mock.",
+      "Track scores, attempts, accuracy, and results so you know exactly where your preparation stands.",
+  },
+  {
+    number: "05",
+    title: "SCHEDULED SESSIONS",
+    description:
+      "Take controlled examination sessions with fixed time windows and automatic submission.",
+  },
+  {
+    number: "06",
+    title: "CERTIFICATION TRACKS",
+    description:
+      "Prepare across multiple AWS certification paths as the platform continues to expand.",
   },
 ];
 
@@ -39,19 +51,19 @@ const steps = [
     number: "02",
     title: "CHOOSE",
     description:
-      "View the mock examinations available to you.",
+      "Select an available mock examination and review its details.",
   },
   {
     number: "03",
     title: "ATTEMPT",
     description:
-      "Enter the scheduled session and complete your examination.",
+      "Enter the scheduled session and complete your examination under a controlled timer.",
   },
   {
     number: "04",
     title: "IMPROVE",
     description:
-      "Analyze your result and use it to prepare for the real certification.",
+      "Review your result, understand your mistakes, and prepare for the next attempt.",
   },
 ];
 
@@ -62,20 +74,25 @@ const certifications = [
   "CLOUD PRACTITIONER",
 ];
 
+const advantages = [
+  "500+ certification-focused questions",
+  "Full-length timed mock examinations",
+  "Detailed post-exam explanations",
+  "Performance and attempt history",
+  "Scheduled internal examination sessions",
+  "Multiple AWS certification tracks",
+  "Built specifically for LPU students",
+];
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#111827] text-white">
-
-      {/* ===================================================== */}
-      {/* HERO */}
-      {/* ===================================================== */}
 
       <section className="relative overflow-hidden border-b border-[#2d3544]">
         <div className="aws-grid absolute inset-0 opacity-50" />
 
         <div className="absolute right-0 top-0 hidden h-full w-[28%] border-l border-[#2d3544] lg:block">
           <div className="absolute right-12 top-12 h-24 w-24 bg-[#ff9900]" />
-
           <div className="absolute bottom-24 right-24 h-16 w-16 border border-[#ff9900]" />
 
           <div className="absolute bottom-12 right-12 font-mono text-[10px] tracking-[0.3em] text-gray-600">
@@ -83,7 +100,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
+        <div className="relative mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-24">
           <div className="grid items-center gap-12 lg:grid-cols-[1.5fr_1fr]">
 
             <div>
@@ -95,7 +112,7 @@ export default function Home() {
                 </span>
               </div>
 
-              <h1 className="max-w-3xl font-mono text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+              <h1 className="max-w-4xl font-mono text-4xl font-medium leading-[1.02] tracking-tight sm:text-5xl lg:text-7xl">
                 PREPARE FOR
                 <br />
                 <span className="text-[#ff9900]">
@@ -104,9 +121,10 @@ export default function Home() {
               </h1>
 
               <p className="mt-6 max-w-2xl text-sm leading-7 text-gray-400 sm:text-base">
-                A dedicated mock examination platform built exclusively for
-                the AWS Student Builder Group at LPU. Practice with curated
-                questions, scheduled mocks, and detailed performance insights.
+                The dedicated AWS certification preparation platform for the
+                AWS Student Builder Group at LPU. Practice with a growing
+                question bank, full mock examinations, scheduled sessions,
+                and detailed performance insights.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -128,9 +146,15 @@ export default function Home() {
                   Explore Platform
                 </Link>
               </div>
-            </div>
 
-            {/* Hero information panel */}
+              <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 font-mono text-[10px] uppercase tracking-[0.2em] text-gray-600">
+                <span>500+ QUESTIONS</span>
+                <span>•</span>
+                <span>FULL MOCKS</span>
+                <span>•</span>
+                <span>LPU EXCLUSIVE</span>
+              </div>
+            </div>
 
             <div className="hidden lg:block">
               <div className="border border-[#2d3544] bg-[#151e2d]">
@@ -145,7 +169,7 @@ export default function Home() {
                   </span>
                 </div>
 
-                <div className="space-y-5 p-6">
+                <div className="space-y-6 p-6">
                   <div>
                     <p className="font-mono text-[10px] uppercase tracking-widest text-gray-600">
                       PLATFORM
@@ -154,6 +178,28 @@ export default function Home() {
                     <p className="mt-1 font-mono text-lg text-white">
                       AWS LPU EXAM PORTAL
                     </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-5 border-t border-[#2d3544] pt-5">
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-gray-600">
+                        QUESTION BANK
+                      </p>
+
+                      <p className="mt-2 font-mono text-2xl text-[#ff9900]">
+                        500+
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-gray-600">
+                        MOCK EXAMS
+                      </p>
+
+                      <p className="mt-2 font-mono text-2xl text-[#ff9900]">
+                        20+
+                      </p>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 border-t border-[#2d3544] pt-5">
@@ -195,40 +241,128 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===================================================== */}
-      {/* QUICK STATS */}
-      {/* ===================================================== */}
-
       <section className="border-b border-[#2d3544] bg-[#151e2d]">
         <div className="mx-auto grid max-w-7xl grid-cols-2 sm:grid-cols-4">
 
-          <Stat value="AWS" label="CERTIFICATION FOCUS" />
-          <Stat value="MCQ" label="QUESTION FORMAT" />
-          <Stat value="LIVE" label="SCHEDULED SESSIONS" />
-          <Stat value="LPU" label="COMMUNITY ACCESS" />
+          <Stat
+            value="500+"
+            label="CURATED QUESTIONS"
+          />
+
+          <Stat
+            value="20+"
+            label="FULL MOCK EXAMS"
+          />
+
+          <Stat
+            value="4"
+            label="AWS CERTIFICATION TRACKS"
+          />
+
+          <Stat
+            value="100%"
+            label="LPU EXCLUSIVE"
+          />
 
         </div>
       </section>
 
-      {/* ===================================================== */}
-      {/* PLATFORM */}
-      {/* ===================================================== */}
+      <section className="border-b border-[#2d3544]">
+        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
 
-      <section id="platform" className="border-b border-[#2d3544]">
+          <SectionHeader
+            eyebrow="// THE QUESTION BANK"
+            title="500+ QUESTIONS. ONE PLACE."
+            description="Stop jumping between random question websites. Build your preparation around a growing bank of certification-focused AWS questions."
+          />
+
+          <div className="mt-12 grid border-l border-t border-[#2d3544] sm:grid-cols-2 lg:grid-cols-4">
+
+            <Metric
+              value="500+"
+              label="QUESTIONS"
+            />
+
+            <Metric
+              value="4"
+              label="CERTIFICATION TRACKS"
+            />
+
+            <Metric
+              value="3"
+              label="DIFFICULTY LEVELS"
+            />
+
+            <Metric
+              value="2"
+              label="QUESTION TYPES"
+            />
+
+          </div>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+
+            <div className="border border-[#2d3544] bg-[#151e2d] p-6">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#ff9900]">
+                EASY
+              </p>
+
+              <p className="mt-4 font-mono text-xl">
+                BUILD THE BASE
+              </p>
+
+              <p className="mt-3 text-sm leading-6 text-gray-500">
+                Strengthen your understanding of fundamental AWS concepts.
+              </p>
+            </div>
+
+            <div className="border border-[#2d3544] bg-[#151e2d] p-6">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#ff9900]">
+                MEDIUM
+              </p>
+
+              <p className="mt-4 font-mono text-xl">
+                TEST YOUR DEPTH
+              </p>
+
+              <p className="mt-3 text-sm leading-6 text-gray-500">
+                Practice scenarios that require more than simple recall.
+              </p>
+            </div>
+
+            <div className="border border-[#2d3544] bg-[#151e2d] p-6">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#ff9900]">
+                HARD
+              </p>
+
+              <p className="mt-4 font-mono text-xl">
+                PUSH YOUR LIMITS
+              </p>
+
+              <p className="mt-3 text-sm leading-6 text-gray-500">
+                Challenge yourself with complex certification-style scenarios.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <section id="platform" className="border-b border-[#2d3544] bg-[#151e2d]">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
 
           <SectionHeader
             eyebrow="// PLATFORM"
-            title="EVERYTHING YOU NEED TO PREPARE"
-            description="A focused examination environment without the noise of a traditional learning platform."
+            title="MORE THAN A QUESTION BANK"
+            description="Everything required to turn individual practice into structured certification preparation."
           />
 
-          <div className="mt-12 grid border-l border-t border-[#2d3544] sm:grid-cols-2">
+          <div className="mt-12 grid border-l border-t border-[#2d3544] sm:grid-cols-2 lg:grid-cols-3">
 
             {features.map((feature) => (
               <div
                 key={feature.number}
-                className="group min-h-56 border-b border-r border-[#2d3544] p-7 transition-colors hover:bg-[#151e2d]"
+                className="group min-h-64 border-b border-r border-[#2d3544] p-7 transition-colors hover:bg-[#111827]"
               >
                 <div className="flex items-start justify-between">
                   <span className="font-mono text-xs text-[#ff9900]">
@@ -240,7 +374,7 @@ export default function Home() {
                   </span>
                 </div>
 
-                <h3 className="mt-12 font-mono text-base tracking-wider">
+                <h3 className="mt-14 font-mono text-base tracking-wider">
                   {feature.title}
                 </h3>
 
@@ -254,9 +388,116 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===================================================== */}
-      {/* HOW IT WORKS */}
-      {/* ===================================================== */}
+      <section className="border-b border-[#2d3544]">
+        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+
+          <SectionHeader
+            eyebrow="// MOCK EXAMINATIONS"
+            title="PRACTICE LIKE IT'S THE REAL THING"
+            description="A question bank tells you what you know. A timed mock tells you whether you can perform under pressure."
+          />
+
+          <div className="mt-12 grid gap-8 lg:grid-cols-[1.2fr_1fr]">
+
+            <div className="border border-[#2d3544] bg-[#151e2d] p-8 sm:p-10">
+              <div className="flex items-center justify-between border-b border-[#2d3544] pb-6">
+                <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-gray-500">
+                  MOCK EXAMINATION
+                </span>
+
+                <span className="font-mono text-[10px] uppercase text-[#ff9900]">
+                  TIMED
+                </span>
+              </div>
+
+              <div className="mt-10">
+                <p className="font-mono text-4xl sm:text-5xl">
+                  TEST.
+                  <br />
+                  <span className="text-[#ff9900]">
+                    SUBMIT.
+                  </span>
+                  <br />
+                  IMPROVE.
+                </p>
+
+                <p className="mt-6 max-w-xl text-sm leading-7 text-gray-500">
+                  Enter scheduled sessions, work through your questions under
+                  a timer, submit your attempt, and immediately get the data
+                  needed to improve your next attempt.
+                </p>
+              </div>
+
+              <div className="mt-10 grid grid-cols-2 gap-px bg-[#2d3544]">
+                <div className="bg-[#151e2d] p-5">
+                  <p className="font-mono text-lg text-[#ff9900]">
+                    TIMER
+                  </p>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Controlled examination window
+                  </p>
+                </div>
+
+                <div className="bg-[#151e2d] p-5">
+                  <p className="font-mono text-lg text-[#ff9900]">
+                    RESULTS
+                  </p>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Detailed post-exam review
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-px bg-[#2d3544] sm:grid-cols-2 lg:grid-cols-1">
+
+              <div className="bg-[#111827] p-7">
+                <span className="font-mono text-xs text-[#ff9900]">
+                  01
+                </span>
+
+                <h3 className="mt-5 font-mono text-sm tracking-wider">
+                  CONTROLLED SESSIONS
+                </h3>
+
+                <p className="mt-3 text-sm leading-6 text-gray-500">
+                  Fixed examination windows keep the experience structured.
+                </p>
+              </div>
+
+              <div className="bg-[#111827] p-7">
+                <span className="font-mono text-xs text-[#ff9900]">
+                  02
+                </span>
+
+                <h3 className="mt-5 font-mono text-sm tracking-wider">
+                  AUTOMATIC SUBMISSION
+                </h3>
+
+                <p className="mt-3 text-sm leading-6 text-gray-500">
+                  When the examination ends, your attempt is submitted.
+                </p>
+              </div>
+
+              <div className="bg-[#111827] p-7">
+                <span className="font-mono text-xs text-[#ff9900]">
+                  03
+                </span>
+
+                <h3 className="mt-5 font-mono text-sm tracking-wider">
+                  POST-EXAM REVIEW
+                </h3>
+
+                <p className="mt-3 text-sm leading-6 text-gray-500">
+                  Review answers and explanations after submission.
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </section>
 
       <section className="border-b border-[#2d3544] bg-[#151e2d]">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
@@ -272,7 +513,7 @@ export default function Home() {
             {steps.map((step) => (
               <div
                 key={step.number}
-                className="min-h-52 border-b border-r border-[#2d3544] p-6"
+                className="min-h-56 border-b border-r border-[#2d3544] p-6"
               >
                 <span className="font-mono text-xs text-[#ff9900]">
                   {step.number}
@@ -292,10 +533,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===================================================== */}
-      {/* CERTIFICATIONS */}
-      {/* ===================================================== */}
-
       <section className="border-b border-[#2d3544]">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
 
@@ -313,9 +550,9 @@ export default function Home() {
               </h2>
 
               <p className="mt-6 max-w-md text-sm leading-6 text-gray-500">
-                Whether you're starting with the fundamentals or preparing for
-                an associate-level certification, the platform grows with the
-                community.
+                Start with the fundamentals, prepare for an associate-level
+                certification, or keep progressing as new certification tracks
+                are added to the platform.
               </p>
             </div>
 
@@ -336,7 +573,7 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <span className="font-mono text-xs text-gray-700 group-hover:text-[#ff9900]">
+                  <span className="font-mono text-xs text-gray-700 transition-colors group-hover:text-[#ff9900]">
                     →
                   </span>
                 </div>
@@ -348,10 +585,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===================================================== */}
-      {/* EXCLUSIVITY */}
-      {/* ===================================================== */}
-
       <section className="border-b border-[#2d3544] bg-[#151e2d]">
         <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
 
@@ -361,6 +594,124 @@ export default function Home() {
               <div className="aws-grid h-full opacity-40" />
             </div>
 
+            <div className="relative grid lg:grid-cols-[1.2fr_1fr]">
+
+              <div className="border-b border-[#3b4556] p-8 sm:p-12 lg:border-b-0 lg:border-r">
+
+                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ff9900]">
+                  // THE ADVANTAGE
+                </p>
+
+                <h2 className="mt-5 font-mono text-3xl leading-tight sm:text-5xl">
+                  WHY PREPARE
+                  <br />
+                  <span className="text-[#ff9900]">
+                    ALONE?
+                  </span>
+                </h2>
+
+                <p className="mt-6 max-w-2xl text-sm leading-7 text-gray-500 sm:text-base">
+                  You can find AWS questions anywhere. What you cannot find
+                  everywhere is a preparation system built specifically around
+                  your community, your certification goals, and your progress.
+                </p>
+
+              </div>
+
+              <div className="relative p-8 sm:p-12">
+
+                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-gray-600">
+                  WHAT YOU GET
+                </p>
+
+                <div className="mt-6 space-y-4">
+
+                  {advantages.map((advantage) => (
+                    <div
+                      key={advantage}
+                      className="flex items-start gap-4"
+                    >
+                      <span className="mt-1 h-1.5 w-1.5 shrink-0 bg-[#ff9900]" />
+
+                      <span className="font-mono text-xs leading-5 text-gray-300">
+                        {advantage}
+                      </span>
+                    </div>
+                  ))}
+
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section className="border-b border-[#2d3544]">
+        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+
+          <div className="grid gap-10 md:grid-cols-4">
+
+            <div className="border-l-2 border-[#ff9900] pl-5">
+              <p className="font-mono text-3xl text-[#ff9900]">
+                500+
+              </p>
+
+              <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                QUESTIONS
+              </p>
+            </div>
+
+            <div className="border-l border-[#2d3544] pl-5">
+              <p className="font-mono text-3xl">
+                20+
+              </p>
+
+              <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                MOCKS
+              </p>
+            </div>
+
+            <div className="border-l border-[#2d3544] pl-5">
+              <p className="font-mono text-3xl">
+                4
+              </p>
+
+              <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                TRACKS
+              </p>
+            </div>
+
+            <div className="border-l border-[#2d3544] pl-5">
+              <p className="font-mono text-3xl">
+                1
+              </p>
+
+              <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                COMMUNITY
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <section className="border-b border-[#2d3544] bg-[#151e2d]">
+        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+
+          <div className="relative overflow-hidden border border-[#3b4556]">
+
+            <div className="absolute right-0 top-0 hidden h-full w-1/3 bg-[#111827] lg:block">
+              <div className="aws-grid h-full opacity-40" />
+
+              <div className="absolute right-12 top-12 font-mono text-7xl text-[#ff9900]/10">
+                AWS
+              </div>
+            </div>
+
             <div className="relative max-w-3xl p-8 sm:p-12">
 
               <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ff9900]">
@@ -368,17 +719,42 @@ export default function Home() {
               </p>
 
               <h2 className="mt-5 font-mono text-3xl leading-tight sm:text-5xl">
-                NOT EVERYONE
+                THE PLATFORM IS PUBLIC.
                 <br />
-                GETS ACCESS.
+                <span className="text-[#ff9900]">
+                  THE ADVANTAGE ISN'T.
+                </span>
               </h2>
 
               <p className="mt-6 max-w-2xl text-sm leading-7 text-gray-500 sm:text-base">
-                The exam portal is an exclusive perk for members of the AWS
-                Student Builder Group at LPU. Curated mocks, internal
-                examination sessions, and performance tracking — built for the
-                people building with AWS at LPU.
+                Anyone can learn AWS. But members of the AWS Student Builder
+                Group at LPU get access to an internal examination platform
+                built specifically for their certification preparation.
               </p>
+
+              <div className="mt-8 grid gap-3 sm:grid-cols-2">
+
+                {[
+                  "500+ question bank",
+                  "Internal mock examinations",
+                  "Scheduled exam sessions",
+                  "Detailed post-exam review",
+                  "Performance history",
+                  "Certification-specific preparation",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-3 border border-[#2d3544] px-4 py-3"
+                  >
+                    <span className="h-1.5 w-1.5 bg-[#ff9900]" />
+
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-gray-400">
+                      {item}
+                    </span>
+                  </div>
+                ))}
+
+              </div>
 
               <div className="mt-8 flex items-center gap-3">
                 <span className="h-2 w-2 bg-[#ff9900]" />
@@ -394,10 +770,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===================================================== */}
-      {/* FINAL CTA */}
-      {/* ===================================================== */}
-
       <section className="bg-[#ff9900] text-[#111827]">
         <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
 
@@ -408,11 +780,20 @@ export default function Home() {
                 AWS STUDENT BUILDER GROUP / LPU
               </p>
 
-              <h2 className="mt-5 max-w-3xl font-mono text-4xl font-bold leading-tight sm:text-6xl">
-                READY TO TAKE
+              <h2 className="mt-5 max-w-4xl font-mono text-4xl font-bold leading-tight sm:text-6xl">
+                YOUR CERTIFICATION
                 <br />
-                YOUR NEXT MOCK?
+                IS THE GOAL.
+                <br />
+                <span className="text-white">
+                  PRACTICE IS THE ADVANTAGE.
+                </span>
               </h2>
+
+              <p className="mt-6 max-w-2xl text-sm leading-6 text-[#111827]/70">
+                500+ questions. Timed mocks. Detailed results. One platform
+                built around your AWS preparation at LPU.
+              </p>
             </div>
 
             <Link
@@ -427,12 +808,9 @@ export default function Home() {
             </Link>
 
           </div>
+
         </div>
       </section>
-
-      {/* ===================================================== */}
-      {/* FOOTER */}
-      {/* ===================================================== */}
 
       <footer className="border-t border-[#2d3544] bg-[#111827]">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-8">
@@ -459,6 +837,7 @@ export default function Home() {
 
         </div>
       </footer>
+
     </main>
   );
 }
@@ -471,12 +850,32 @@ function Stat({
   label: string;
 }) {
   return (
-    <div className="border-r border-[#2d3544] px-5 py-6 last:border-r-0">
-      <p className="font-mono text-xl text-[#ff9900]">
+    <div className="border-r border-[#2d3544] px-5 py-7 last:border-r-0">
+      <p className="font-mono text-2xl text-[#ff9900] sm:text-3xl">
         {value}
       </p>
 
       <p className="mt-2 font-mono text-[9px] leading-4 tracking-[0.15em] text-gray-500">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function Metric({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
+  return (
+    <div className="group border-b border-r border-[#2d3544] p-7 transition-colors hover:bg-[#151e2d]">
+      <p className="font-mono text-4xl text-[#ff9900] transition-transform group-hover:translate-x-1 sm:text-5xl">
+        {value}
+      </p>
+
+      <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500">
         {label}
       </p>
     </div>

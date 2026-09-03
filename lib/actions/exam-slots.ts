@@ -234,6 +234,7 @@ export async function cancelExamSlot(
   _formData?: FormData,
 ): Promise<ActionResult> {
   await requireAdmin();
+  void _formData;
 
   const supabase = await createClient();
 

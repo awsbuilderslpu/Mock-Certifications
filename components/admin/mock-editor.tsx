@@ -14,6 +14,7 @@ type Question = {
   question_type: string;
   difficulty: string | null;
   category: string | null;
+  explanation: string | null;
   question_options: {
     id: string;
     option_text: string;
@@ -104,10 +105,12 @@ export default function MockEditor({
     setError("");
     setMessage("");
 
-    const result = await updateMockQuestions(
-      mock.id,
-      questions.map((question) => question.id),
-    );
+    const result = await updateMockQuestions({
+      mockId: mock.id,
+      questionIds: questions.map(
+        (question) => question.id,
+      ),
+    });
 
     setSaving(false);
 
@@ -124,27 +127,38 @@ export default function MockEditor({
   };
 
   const handlePublish = async () => {
+    setPublishing(true);
+    setError("");
+    setMessage("");
+
     console.log("PUBLISH MOCK ID:", mock.id);
     console.log("PUBLISH MOCK ID TYPE:", typeof mock.id);
 
-    const questionResult = await updateMockQuestions(
-      mock.id,
-      questions.map((question) => question.id),
-    );
+    try {
+      const questionResult =
+        await updateMockQuestions({
+          mockId: mock.id,
+          questionIds: questions.map(
+            (question) => question.id,
+          ),
+        });
 
-    if (!questionResult.success) {
-      setError(questionResult.error);
-      return;
+      if (!questionResult.success) {
+        setError(questionResult.error);
+        return;
+      }
+
+      const result = await publishMock(mock.id);
+
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+
+      window.location.reload();
+    } finally {
+      setPublishing(false);
     }
-
-    const result = await publishMock(mock.id);
-
-    if (!result.success) {
-      setError(result.error);
-      return;
-    }
-
-    window.location.reload();
   };
   
   const handleArchive = async () => {
@@ -384,6 +398,17 @@ export default function MockEditor({
                             ))}
 
                       </div>
+
+                      {question.explanation && (
+                        <details className="mt-4 border border-[#2d3544]">
+                          <summary className="cursor-pointer px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-[#ff9900]">
+                            View Explanation
+                          </summary>
+                          <p className="border-t border-[#2d3544] px-3 py-3 text-xs leading-5 text-gray-400">
+                            {question.explanation}
+                          </p>
+                        </details>
+                      )}
 
                     </div>
 

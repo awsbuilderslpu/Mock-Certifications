@@ -204,7 +204,7 @@ export default function SlotBuilder({
                   Candidates will only be able to start
                   an attempt while the slot is active.
                   The examination itself will still be
-                  limited by the mock's configured duration.
+                  limited by the mock&apos;s configured duration.
                 </p>
               </div>
             </div>
