@@ -14,16 +14,15 @@ type DashboardSlot = {
   starts_at: string;
   ends_at: string;
   status: string;
-  mocks: DashboardMock | DashboardMock[] | null;
+  mocks: DashboardMock[] | null;
 };
 
 type DashboardAttempt = {
   id: string;
-  mock_id: string;
   percentage: number | null;
   status: string;
   submitted_at: string | null;
-  mocks: Pick<DashboardMock, "id" | "title"> | Pick<DashboardMock, "id" | "title">[] | null;
+  mocks: Pick<DashboardMock, "id" | "title">[] | null;
 };
 
 export default async function DashboardPage() {
@@ -33,68 +32,72 @@ export default async function DashboardPage() {
   const isAdmin = user.role === "admin";
   const isCore = user.role === "core";
 
-  /*
-   * Exam data is only relevant to admin/core.
-   */
   let upcomingSlots: DashboardSlot[] = [];
   let recentAttempts: DashboardAttempt[] = [];
 
   if (isAdmin || isCore) {
     const now = new Date().toISOString();
 
-    const { data: slots } = await supabase
-      .from("exam_slots")
-      .select(`
-        id,
-        starts_at,
-        ends_at,
-        status,
-        mocks (
-          id,
-          title,
-          duration_minutes,
-          passing_score
+    const [slotsResult, attemptsResult] = await Promise.all([
+      supabase
+        .from("exam_slots")
+        .select(
+          `
+            id,
+            starts_at,
+            ends_at,
+            status,
+            mocks!exam_slots_mock_id_fkey (
+              id,
+              title,
+              duration_minutes,
+              passing_score
+            )
+          `,
         )
-      `)
-      .eq("status", "scheduled")
-      .gte("ends_at", now)
-      .order("starts_at", {
-        ascending: true,
-      })
-      .limit(3);
+        .eq("status", "scheduled")
+        .gte("ends_at", now)
+        .order("starts_at", { ascending: true })
+        .limit(3),
 
-    upcomingSlots = slots ?? [];
-
-    const { data: attempts } = await supabase
-      .from("attempts")
-      .select(`
-        id,
-        mock_id,
-        score,
-        percentage,
-        status,
-        submitted_at,
-        mocks (
-          id,
-          title
+      supabase
+        .from("attempts")
+        .select(
+          `
+            id,
+            percentage,
+            status,
+            submitted_at,
+            mocks!attempts_mock_id_fkey (
+              id,
+              title
+            )
+          `,
         )
-      `)
-      .eq("user_id", user.profile.id)
-      .order("created_at", {
-        ascending: false,
-      })
-      .limit(5);
+        .eq("user_id", user.profile.id)
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ]);
 
-    recentAttempts = attempts ?? [];
+    if (slotsResult.error) {
+      console.error("Failed to load dashboard exam slots:", slotsResult.error);
+    }
+
+    if (attemptsResult.error) {
+      console.error(
+        "Failed to load dashboard attempts:",
+        attemptsResult.error,
+      );
+    }
+
+    upcomingSlots = (slotsResult.data ?? []) as DashboardSlot[];
+    recentAttempts = (attemptsResult.data ?? []) as DashboardAttempt[];
   }
 
   return (
     <main className="min-h-screen bg-[#111827]">
       <div className="aws-grid min-h-[calc(100vh-72px)]">
         <div className="mx-auto max-w-7xl px-6 py-10">
-
-          {/* Header */}
-
           <section className="mb-10">
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#ff9900]">
               AWS LPU / Dashboard
@@ -104,9 +107,7 @@ export default async function DashboardPage() {
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">
                   Welcome back,{" "}
-                  {user.profile.full_name?.split(" ")[0] ||
-                    "Member"}
-                  .
+                  {user.profile.full_name?.split(" ")[0] || "Member"}.
                 </h1>
 
                 <p className="mt-2 text-sm text-gray-400">
@@ -130,16 +131,12 @@ export default async function DashboardPage() {
             </div>
           </section>
 
-          {/* ADMIN */}
-
           {isAdmin && (
             <AdminDashboard
               upcomingSlots={upcomingSlots}
               recentAttempts={recentAttempts}
             />
           )}
-
-          {/* CORE */}
 
           {isCore && (
             <CoreDashboard
@@ -148,21 +145,12 @@ export default async function DashboardPage() {
             />
           )}
 
-          {/* MEMBER */}
-
-          {user.role === "member" && (
-            <MemberDashboard />
-          )}
+          {user.role === "member" && <MemberDashboard />}
         </div>
       </div>
     </main>
   );
 }
-
-
-/* =========================================================
-   ADMIN DASHBOARD
-   ========================================================= */
 
 function AdminDashboard({
   upcomingSlots,
@@ -174,7 +162,6 @@ function AdminDashboard({
   return (
     <>
       <div className="grid gap-px border border-[#2d3544] bg-[#2d3544] sm:grid-cols-2 lg:grid-cols-4">
-
         <DashboardStat
           label="Question Bank"
           value="Manage"
@@ -198,23 +185,17 @@ function AdminDashboard({
           value="View"
           href="/admin/results"
         />
-
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
-
         <UpcomingExams slots={upcomingSlots} />
-
         <RecentAttempts attempts={recentAttempts} />
-
       </div>
 
       <section className="mt-6 border border-[#2d3544] bg-[#151e2d]">
-
         <SectionHeader title="Administration" />
 
         <div className="grid gap-px bg-[#2d3544] sm:grid-cols-3">
-
           <AdminLink
             href="/admin/questions"
             title="Question Bank"
@@ -232,18 +213,11 @@ function AdminDashboard({
             title="Exam Slots"
             description="Schedule examination sessions."
           />
-
         </div>
-
       </section>
     </>
   );
 }
-
-
-/* =========================================================
-   CORE DASHBOARD
-   ========================================================= */
 
 function CoreDashboard({
   upcomingSlots,
@@ -255,7 +229,6 @@ function CoreDashboard({
   return (
     <>
       <div className="grid gap-px border border-[#2d3544] bg-[#2d3544] sm:grid-cols-3">
-
         <DashboardStat
           label="Available Exams"
           value={String(upcomingSlots.length)}
@@ -273,30 +246,22 @@ function CoreDashboard({
           value="View"
           href="/results"
         />
-
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
-
         <UpcomingExams slots={upcomingSlots} />
-
         <RecentAttempts attempts={recentAttempts} />
-
       </div>
 
       <section className="mt-6 border border-[#ff9900]/30 bg-[#ff9900]/5 p-6">
-
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#ff9900]">
           Core Member Access
         </p>
 
-        <h2 className="mt-3 text-xl font-bold">
-          Ready for your next mock?
-        </h2>
+        <h2 className="mt-3 text-xl font-bold">Ready for your next mock?</h2>
 
         <p className="mt-2 max-w-xl text-sm text-gray-400">
-          Scheduled examinations will appear here when
-          they&apos;re available.
+          Scheduled examinations will appear here when they&apos;re available.
         </p>
 
         <Link
@@ -305,79 +270,57 @@ function CoreDashboard({
         >
           View Examinations →
         </Link>
-
       </section>
     </>
   );
 }
-
-
-/* =========================================================
-   MEMBER DASHBOARD
-   ========================================================= */
 
 function MemberDashboard() {
   return (
-    <>
-      <section className="border border-[#2d3544] bg-[#151e2d]">
+    <section className="border border-[#2d3544] bg-[#151e2d]">
+      <div className="p-8">
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500">
+          Member Workspace
+        </p>
 
-        <div className="p-8">
+        <h2 className="mt-4 text-2xl font-bold">You&apos;re signed in.</h2>
 
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500">
-            Member Workspace
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-400">
+          Your account has standard AWS Student Builder Group access.
+          Examination features are reserved for Core members.
+        </p>
+      </div>
+
+      <div className="grid gap-px border-t border-[#2d3544] bg-[#2d3544] sm:grid-cols-2">
+        <Link
+          href="/"
+          className="bg-[#151e2d] p-5 transition hover:bg-[#192233]"
+        >
+          <p className="font-mono text-xs uppercase text-[#ff9900]">
+            ← Home
           </p>
 
-          <h2 className="mt-4 text-2xl font-bold">
-            You&apos;re signed in.
-          </h2>
+          <p className="mt-2 text-sm text-gray-400">
+            Return to the public portal.
+          </p>
+        </Link>
 
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-400">
-            Your account has standard AWS Student Builder
-            Group access. Examination features are reserved
-            for Core members.
+        <Link
+          href="/profile"
+          className="bg-[#151e2d] p-5 transition hover:bg-[#192233]"
+        >
+          <p className="font-mono text-xs uppercase text-[#ff9900]">
+            Profile →
           </p>
 
-        </div>
-
-        <div className="grid gap-px border-t border-[#2d3544] bg-[#2d3544] sm:grid-cols-2">
-
-          <Link
-            href="/"
-            className="bg-[#151e2d] p-5 transition hover:bg-[#192233]"
-          >
-            <p className="font-mono text-xs uppercase text-[#ff9900]">
-              ← Home
-            </p>
-
-            <p className="mt-2 text-sm text-gray-400">
-              Return to the public portal.
-            </p>
-          </Link>
-
-          <Link
-            href="/profile"
-            className="bg-[#151e2d] p-5 transition hover:bg-[#192233]"
-          >
-            <p className="font-mono text-xs uppercase text-[#ff9900]">
-              Profile →
-            </p>
-
-            <p className="mt-2 text-sm text-gray-400">
-              View your member profile.
-            </p>
-          </Link>
-
-        </div>
-
-      </section>
-    </>
+          <p className="mt-2 text-sm text-gray-400">
+            View your member profile.
+          </p>
+        </Link>
+      </div>
+    </section>
   );
 }
-
-
-/* =========================================================
-   UPCOMING EXAMS
-   ========================================================= */
 
 function UpcomingExams({
   slots,
@@ -386,11 +329,7 @@ function UpcomingExams({
 }) {
   return (
     <section className="border border-[#2d3544] bg-[#151e2d]">
-
-      <SectionHeader
-        title="Upcoming Examinations"
-        action="/mocks"
-      />
+      <SectionHeader title="Upcoming Examinations" action="/mocks" />
 
       {!slots.length ? (
         <div className="px-6 py-14 text-center">
@@ -400,19 +339,12 @@ function UpcomingExams({
         </div>
       ) : (
         <div className="divide-y divide-[#2d3544]">
-
           {slots.map((slot) => {
-            const mock = Array.isArray(slot.mocks)
-              ? slot.mocks[0]
-              : slot.mocks;
+            const mock = slot.mocks?.[0];
 
             return (
-              <div
-                key={slot.id}
-                className="p-5"
-              >
+              <div key={slot.id} className="p-5">
                 <div className="flex items-start justify-between gap-4">
-
                   <div>
                     <p className="text-sm font-semibold text-white">
                       {mock?.title ?? "Examination"}
@@ -426,36 +358,23 @@ function UpcomingExams({
                   <span className="font-mono text-[9px] uppercase text-[#ff9900]">
                     Scheduled
                   </span>
-
                 </div>
 
                 <div className="mt-4 flex gap-4 font-mono text-[9px] uppercase text-gray-600">
-                  <span>
-                    {mock?.duration_minutes ?? "—"} MIN
-                  </span>
+                  <span>{mock?.duration_minutes ?? "—"} MIN</span>
 
                   {mock?.passing_score != null && (
-                    <span>
-                      PASS {mock.passing_score}%
-                    </span>
+                    <span>PASS {mock.passing_score}%</span>
                   )}
                 </div>
-
               </div>
             );
           })}
-
         </div>
       )}
-
     </section>
   );
 }
-
-
-/* =========================================================
-   RECENT ATTEMPTS
-   ========================================================= */
 
 function RecentAttempts({
   attempts,
@@ -464,11 +383,7 @@ function RecentAttempts({
 }) {
   return (
     <section className="border border-[#2d3544] bg-[#151e2d]">
-
-      <SectionHeader
-        title="Recent Attempts"
-        action="/results"
-      />
+      <SectionHeader title="Recent Attempts" action="/results" />
 
       {!attempts.length ? (
         <div className="px-6 py-14 text-center">
@@ -478,11 +393,8 @@ function RecentAttempts({
         </div>
       ) : (
         <div className="divide-y divide-[#2d3544]">
-
           {attempts.map((attempt) => {
-            const mock = Array.isArray(attempt.mocks)
-              ? attempt.mocks[0]
-              : attempt.mocks;
+            const mock = attempt.mocks?.[0];
 
             return (
               <div
@@ -502,32 +414,20 @@ function RecentAttempts({
                 <div className="text-right">
                   {attempt.percentage != null ? (
                     <p className="font-mono text-sm text-[#ff9900]">
-                      {Number(
-                        attempt.percentage,
-                      ).toFixed(1)}
-                      %
+                      {Number(attempt.percentage).toFixed(1)}%
                     </p>
                   ) : (
-                    <p className="font-mono text-[10px] text-gray-600">
-                      —
-                    </p>
+                    <p className="font-mono text-[10px] text-gray-600">—</p>
                   )}
                 </div>
               </div>
             );
           })}
-
         </div>
       )}
-
     </section>
   );
 }
-
-
-/* =========================================================
-   SMALL COMPONENTS
-   ========================================================= */
 
 function DashboardStat({
   label,
@@ -547,9 +447,7 @@ function DashboardStat({
         {label}
       </p>
 
-      <p className="mt-3 text-lg font-bold text-[#ff9900]">
-        {value}
-      </p>
+      <p className="mt-3 text-lg font-bold text-[#ff9900]">{value}</p>
     </Link>
   );
 }
@@ -568,13 +466,9 @@ function AdminLink({
       href={href}
       className="bg-[#151e2d] p-5 transition hover:bg-[#192233]"
     >
-      <p className="text-sm font-semibold text-white">
-        {title}
-      </p>
+      <p className="text-sm font-semibold text-white">{title}</p>
 
-      <p className="mt-2 text-xs text-gray-500">
-        {description}
-      </p>
+      <p className="mt-2 text-xs text-gray-500">{description}</p>
 
       <p className="mt-4 font-mono text-[9px] uppercase text-[#ff9900]">
         Open →

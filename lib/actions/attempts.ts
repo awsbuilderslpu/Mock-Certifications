@@ -299,23 +299,22 @@ export async function saveAttemptAnswer(
     error: attemptError,
   } = await supabase
     .from("attempts")
-    .select(
-      `
-        id,
-        user_id,
-        mock_id,
-        status,
-        started_at,
-        slot_id,
-        mocks (
-          duration_minutes
-        ),
-        exam_slots (
-          ends_at,
-          status
-        )
-      `,
-    )
+    .select(`
+      id,
+      user_id,
+      mock_id,
+      slot_id,
+      started_at,
+      status,
+      mocks!attempts_mock_id_fkey (
+        passing_score,
+        duration_minutes
+      ),
+      exam_slots!attempts_slot_id_fkey (
+        ends_at,
+        status
+      )
+    `)
     .eq("id", attemptId)
     .eq("user_id", user.profile.id)
     .maybeSingle();
@@ -528,11 +527,10 @@ export async function submitAttempt(
         slot_id,
         started_at,
         status,
-        mocks (
-          passing_score,
+        mocks!attempts_mock_id_fkey (
           duration_minutes
         ),
-        exam_slots (
+        exam_slots!attempts_slot_id_fkey (
           ends_at,
           status
         )

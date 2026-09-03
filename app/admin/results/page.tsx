@@ -1,5 +1,4 @@
 import Link from "next/link";
-
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -10,45 +9,52 @@ export default async function AdminResultsPage() {
 
   const { data: attempts, error } = await supabase
     .from("attempts")
-    .select(`
-      id,
-      user_id,
-      mock_id,
-      slot_id,
-      started_at,
-      submitted_at,
-      score,
-      percentage,
-      status,
-      created_at,
-      profiles (
-        full_name,
-        email
-      ),
-      mocks (
-        title,
-        passing_score
-      ),
-      exam_slots (
-        starts_at,
-        ends_at
-      )
-    `)
-    .order("created_at", {
-      ascending: false,
-    });
+    .select(
+      `
+        id,
+        user_id,
+        mock_id,
+        slot_id,
+        submitted_at,
+        score,
+        percentage,
+        status,
+        created_at,
+        profiles!attempts_user_id_fkey (
+          full_name,
+          email
+        ),
+        mocks!attempts_mock_id_fkey (
+          title,
+          passing_score
+        )
+      `,
+    )
+    .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(
-      "Failed to load examination results.",
-    );
+    throw new Error(`Failed to load examination results: ${error.message}`);
   }
+
+  const totalAttempts = attempts?.length ?? 0;
+
+  const completedAttempts =
+    attempts?.filter(
+      (attempt) =>
+        attempt.status === "submitted" ||
+        attempt.status === "auto_submitted",
+    ).length ?? 0;
+
+  const inProgressAttempts =
+    attempts?.filter((attempt) => attempt.status === "in_progress").length ?? 0;
+
+  const notStartedAttempts =
+    attempts?.filter((attempt) => attempt.status === "not_started").length ?? 0;
 
   return (
     <main className="min-h-screen bg-[#111827] text-white">
       <div className="aws-grid min-h-screen">
         <div className="mx-auto max-w-7xl px-6 py-10">
-          {/* HEADER */}
           <div className="mb-8 border-b border-[#2d3544] pb-6">
             <Link
               href="/admin"
@@ -61,60 +67,21 @@ export default async function AdminResultsPage() {
               AWS LPU // RESULTS
             </div>
 
-            <h1 className="mt-2 text-3xl font-bold">
-              Candidate Results
-            </h1>
+            <h1 className="mt-2 text-3xl font-bold">Candidate Results</h1>
 
             <p className="mt-2 text-sm text-[#9ca3af]">
-              Review examination attempts, scores,
-              percentages, and submission status.
+              Review examination attempts, scores, percentages, and submission
+              status.
             </p>
           </div>
 
-          {/* SUMMARY */}
           <div className="mb-8 grid grid-cols-2 gap-px border border-[#2d3544] bg-[#2d3544] md:grid-cols-4">
-            <SummaryItem
-              label="TOTAL ATTEMPTS"
-              value={attempts?.length ?? 0}
-            />
-
-            <SummaryItem
-              label="COMPLETED"
-              value={
-                attempts?.filter(
-                  (attempt) =>
-                    attempt.status ===
-                      "submitted" ||
-                    attempt.status ===
-                      "auto_submitted",
-                ).length ?? 0
-              }
-            />
-
-            <SummaryItem
-              label="IN PROGRESS"
-              value={
-                attempts?.filter(
-                  (attempt) =>
-                    attempt.status ===
-                    "in_progress",
-                ).length ?? 0
-              }
-            />
-
-            <SummaryItem
-              label="NOT STARTED"
-              value={
-                attempts?.filter(
-                  (attempt) =>
-                    attempt.status ===
-                    "not_started",
-                ).length ?? 0
-              }
-            />
+            <SummaryItem label="TOTAL ATTEMPTS" value={totalAttempts} />
+            <SummaryItem label="COMPLETED" value={completedAttempts} />
+            <SummaryItem label="IN PROGRESS" value={inProgressAttempts} />
+            <SummaryItem label="NOT STARTED" value={notStartedAttempts} />
           </div>
 
-          {/* RESULTS TABLE */}
           <section className="border border-[#2d3544] bg-[#151e2d]">
             <div className="border-b border-[#2d3544] px-5 py-4">
               <div className="font-mono text-xs uppercase tracking-widest text-[#9ca3af]">
@@ -157,89 +124,61 @@ export default async function AdminResultsPage() {
 
                   <tbody>
                     {attempts.map((attempt) => {
-                      const profile = Array.isArray(
-                        attempt.profiles,
-                      )
+                      const profile = Array.isArray(attempt.profiles)
                         ? attempt.profiles[0]
                         : attempt.profiles;
 
-                      const mock = Array.isArray(
-                        attempt.mocks,
-                      )
+                      const mock = Array.isArray(attempt.mocks)
                         ? attempt.mocks[0]
                         : attempt.mocks;
 
                       const completed =
-                        attempt.status ===
-                          "submitted" ||
-                        attempt.status ===
-                          "auto_submitted";
+                        attempt.status === "submitted" ||
+                        attempt.status === "auto_submitted";
 
-                      const passingScore =
-                        mock?.passing_score;
+                      const passingScore = mock?.passing_score;
 
                       const passed =
                         completed &&
-                        attempt.percentage !==
-                          null &&
+                        attempt.percentage !== null &&
                         passingScore !== null &&
                         passingScore !== undefined &&
-                        Number(
-                          attempt.percentage,
-                        ) >=
-                          Number(passingScore);
+                        Number(attempt.percentage) >= Number(passingScore);
 
                       return (
                         <tr
                           key={attempt.id}
                           className="border-b border-[#2d3544] last:border-b-0 hover:bg-[#1a2435]"
                         >
-                          {/* CANDIDATE */}
                           <td className="px-5 py-4">
                             <div className="font-medium">
-                              {profile?.full_name ||
-                                "Unknown Candidate"}
+                              {profile?.full_name || "Unknown Candidate"}
                             </div>
 
                             <div className="mt-1 font-mono text-xs text-[#6b7280]">
-                              {profile?.email ||
-                                "—"}
+                              {profile?.email || "—"}
                             </div>
                           </td>
 
-                          {/* MOCK */}
                           <td className="px-5 py-4">
                             <div className="font-medium">
-                              {mock?.title ||
-                                "Unknown Examination"}
+                              {mock?.title || "Unknown Examination"}
                             </div>
 
-                            {mock?.passing_score !==
-                              null &&
-                              mock?.passing_score !==
-                                undefined && (
+                            {passingScore !== null &&
+                              passingScore !== undefined && (
                                 <div className="mt-1 font-mono text-[10px] text-[#6b7280]">
-                                  PASS:{" "}
-                                  {
-                                    mock.passing_score
-                                  }
-                                  %
+                                  PASS: {passingScore}%
                                 </div>
                               )}
                           </td>
 
-                          {/* SCORE */}
                           <td className="px-5 py-4 font-mono">
-                            {attempt.score !==
-                            null
-                              ? attempt.score
-                              : "—"}
+                            {attempt.score !== null ? attempt.score : "—"}
                           </td>
 
-                          {/* PERCENTAGE */}
                           <td className="px-5 py-4">
-                            {attempt.percentage !==
-                            null ? (
+                            {attempt.percentage !== null ? (
                               <span
                                 className={
                                   passed
@@ -247,35 +186,23 @@ export default async function AdminResultsPage() {
                                     : "font-mono"
                                 }
                               >
-                                {
-                                  attempt.percentage
-                                }
-                                %
+                                {attempt.percentage}%
                               </span>
                             ) : (
                               "—"
                             )}
                           </td>
 
-                          {/* STATUS */}
                           <td className="px-5 py-4">
-                            <StatusBadge
-                              status={
-                                attempt.status
-                              }
-                            />
+                            <StatusBadge status={attempt.status} />
                           </td>
 
-                          {/* SUBMITTED */}
                           <td className="px-5 py-4 font-mono text-xs text-[#9ca3af]">
                             {attempt.submitted_at
-                              ? formatDate(
-                                  attempt.submitted_at,
-                                )
+                              ? formatDate(attempt.submitted_at)
                               : "—"}
                           </td>
 
-                          {/* ACTION */}
                           <td className="px-5 py-4 text-right">
                             <Link
                               href={`/admin/results/${attempt.id}`}
@@ -297,8 +224,8 @@ export default async function AdminResultsPage() {
                 </div>
 
                 <p className="mt-2 text-sm text-[#9ca3af]">
-                  Candidate submissions will appear
-                  here once examinations are attempted.
+                  Candidate submissions will appear here once examinations are
+                  attempted.
                 </p>
               </div>
             )}
@@ -322,18 +249,12 @@ function SummaryItem({
         {label}
       </div>
 
-      <div className="mt-2 text-2xl font-bold">
-        {value}
-      </div>
+      <div className="mt-2 text-2xl font-bold">{value}</div>
     </div>
   );
 }
 
-function StatusBadge({
-  status,
-}: {
-  status: string;
-}) {
+function StatusBadge({ status }: { status: string }) {
   const label =
     status === "auto_submitted"
       ? "AUTO SUBMITTED"

@@ -16,20 +16,6 @@ type AttemptAnswer = {
   is_correct: boolean | null;
 };
 
-type MockData = {
-  id: string;
-  title: string;
-  description: string | null;
-  duration_minutes: number;
-  passing_score: number | null;
-};
-
-type SlotData = {
-  id: string;
-  starts_at: string;
-  ends_at: string;
-};
-
 type AttemptData = {
   id: string;
   user_id: string;
@@ -41,29 +27,18 @@ type AttemptData = {
   percentage: number | null;
   status: string;
   created_at: string;
-  mocks: MockData | MockData[] | null;
-  exam_slots: SlotData | SlotData[] | null;
 };
 
 type MockQuestion = {
   question_id: string;
   question_order: number;
-  question:
-    | {
-        id: string;
-        question_text: string;
-        category: string | null;
-        explanation: string | null;
-        question_options: QuestionOption[];
-      }
-    | {
-        id: string;
-        question_text: string;
-        category: string | null;
-        explanation: string | null;
-        question_options: QuestionOption[];
-      }[]
-    | null;
+  question: {
+    id: string;
+    question_text: string;
+    category: string | null;
+    explanation: string | null;
+    question_options: QuestionOption[];
+  } | null;
 };
 
 type QuestionOption = {
@@ -76,13 +51,8 @@ type QuestionOption = {
 function getSingleRelation<T>(
   relation: T | T[] | null | undefined,
 ): T | null {
-  if (!relation) {
-    return null;
-  }
-
-  return Array.isArray(relation)
-    ? relation[0] ?? null
-    : relation;
+  if (!relation) return null;
+  return Array.isArray(relation) ? relation[0] ?? null : relation;
 }
 
 function normalizeSelectedOptions(value: unknown): string[] {
@@ -95,74 +65,61 @@ function normalizeSelectedOptions(value: unknown): string[] {
   );
 }
 
+function areSameOptions(
+  selectedOptions: string[],
+  correctOptions: string[],
+) {
+  const selected = new Set(selectedOptions);
+  const correct = new Set(correctOptions);
+
+  return (
+    selected.size === correct.size &&
+    [...selected].every((optionId) =>
+      correct.has(optionId),
+    )
+  );
+}
+
 export default async function ResultsPage({
   params,
 }: PageProps) {
   const user = await requireCore();
-  const { attemptId } = await params;
 
+  const { attemptId } = await params;
   if (!attemptId) {
     notFound();
   }
 
   const supabase = await createClient();
-
-  // ---------------------------------------------------------
-  // FETCH ATTEMPT
-  // ---------------------------------------------------------
-
   const {
     data: rawAttempt,
     error: attemptError,
   } = await supabase
     .from("attempts")
-    .select(
-      `
-        id,
-        user_id,
-        mock_id,
-        slot_id,
-        started_at,
-        submitted_at,
-        score,
-        percentage,
-        status,
-        created_at,
-        mocks (
-          id,
-          title,
-          description,
-          duration_minutes,
-          passing_score
-        ),
-        exam_slots (
-          id,
-          starts_at,
-          ends_at
-        )
-      `,
-    )
+    .select(`
+      id,
+      user_id,
+      mock_id,
+      slot_id,
+      started_at,
+      submitted_at,
+      score,
+      percentage,
+      status,
+      created_at
+    `)
     .eq("id", attemptId)
-    .single();
+    .maybeSingle();
 
-  if (attemptError || !rawAttempt) {
+  if (attemptError) {
     notFound();
   }
 
-  const attempt =
-    rawAttempt as unknown as AttemptData;
-
-  // ---------------------------------------------------------
-  // OWNERSHIP CHECK
-  // ---------------------------------------------------------
+  const attempt = rawAttempt as AttemptData;
 
   if (attempt.user_id !== user.profile.id) {
     redirect("/results");
   }
-
-  // ---------------------------------------------------------
-  // ONLY SHOW SUBMITTED ATTEMPTS
-  // ---------------------------------------------------------
 
   if (
     attempt.status !== "submitted" &&
@@ -171,22 +128,71 @@ export default async function ResultsPage({
     redirect(`/exam/${attempt.id}`);
   }
 
-  const mock = getSingleRelation(attempt.mocks);
+  const {
+    data: mock,
+    error: mockError,
+  } = await supabase
+    .from("mocks")
+    .select(`
+      id,
+      title,
+      description,
+      duration_minutes,
+      passing_score
+    `)
+    .eq("id", attempt.mock_id)
+    .maybeSingle();
 
-  // ---------------------------------------------------------
-  // FETCH ANSWERS
-  // ---------------------------------------------------------
+  if (mockError) {
+    throw new Error(
+      `Mock query failed: ${mockError.message}`,
+    );
+  }
 
-  const { data: rawAnswers } = await supabase
+  if (!mock) {
+    throw new Error("Mock was not found for the attempt.");
+  }
+
+  const {
+    data: slot,
+    error: slotError,
+  } = await supabase
+    .from("exam_slots")
+    .select(`
+      id,
+      starts_at,
+      ends_at
+    `)
+    .eq("id", attempt.slot_id)
+    .maybeSingle();
+
+  if (slotError) {
+    throw new Error(
+      `Slot query failed: ${slotError.message}`,
+    );
+  }
+
+  if (!slot) {
+    throw new Error("Exam slot was not found for the attempt.");
+  }
+
+  const {
+    data: rawAnswers,
+    error: answersError,
+  } = await supabase
     .from("attempt_answers")
-    .select(
-      `
-        question_id,
-        selected_options,
-        is_correct
-      `,
-    )
+    .select(`
+      question_id,
+      selected_options,
+      is_correct
+    `)
     .eq("attempt_id", attempt.id);
+
+  if (answersError) {
+    throw new Error(
+      `Answers query failed: ${answersError.message}`,
+    );
+  }
 
   const attemptAnswers: AttemptAnswer[] = (
     rawAnswers ?? []
@@ -198,41 +204,127 @@ export default async function ResultsPage({
     is_correct: answer.is_correct,
   }));
 
-  // ---------------------------------------------------------
-  // FETCH MOCK QUESTIONS
-  // ---------------------------------------------------------
-
-  const { data: rawMockQuestions } = await supabase
+  const {
+    data: rawMockQuestions,
+    error: mockQuestionsError,
+  } = await supabase
     .from("mock_questions")
-    .select(
-      `
-        question_id,
-        question_order,
-        question:questions (
-          id,
-          question_text,
-          category,
-          explanation,
-          question_options (
-            id,
-            option_text,
-            option_order,
-            is_correct
-          )
-        )
-      `,
-    )
+    .select(`
+      question_id,
+      question_order
+    `)
     .eq("mock_id", attempt.mock_id)
     .order("question_order", {
       ascending: true,
     });
 
-  const questions =
-    (rawMockQuestions ?? []) as unknown as MockQuestion[];
+  if (mockQuestionsError) {
+    throw new Error(
+      `Mock questions query failed: ${mockQuestionsError.message}`,
+    );
+  }
 
-  // ---------------------------------------------------------
-  // RESULT METRICS
-  // ---------------------------------------------------------
+  const questionIds = (
+    rawMockQuestions ?? []
+  ).map((item) => item.question_id);
+
+  // =========================================================
+  // QUESTIONS
+  // =========================================================
+
+  let rawQuestions: Array<{
+    id: string;
+    question_text: string;
+    category: string | null;
+    explanation: string | null;
+  }> = [];
+
+  if (questionIds.length > 0) {
+
+    const {
+      data,
+      error,
+    } = await supabase
+      .from("questions")
+      .select(`
+        id,
+        question_text,
+        category,
+        explanation
+      `)
+      .in("id", questionIds);
+
+    if (error) {
+      throw new Error(
+        `Questions query failed: ${error.message}`,
+      );
+    }
+
+    rawQuestions = data ?? [];
+  } else {
+    //
+  }
+
+  const { data: rawOptions, error: optionsError } = questionIds.length
+    ? await supabase
+        .from("question_options")
+        .select("id, question_id, option_text, option_order, is_correct")
+        .in("question_id", questionIds)
+    : { data: [], error: null };
+
+  if (optionsError) {
+    throw new Error(`Options query failed: ${optionsError.message}`);
+  }
+
+  const optionsByQuestion = new Map<string, QuestionOption[]>();
+  for (const option of rawOptions ?? []) {
+    const options = optionsByQuestion.get(option.question_id) ?? [];
+    options.push(option);
+    optionsByQuestion.set(option.question_id, options);
+  }
+  
+  const questionMap = new Map(
+    rawQuestions.map((question) => [
+      question.id,
+      question,
+    ]),
+  );
+
+  const questions: MockQuestion[] = (
+    rawMockQuestions ?? []
+  )
+    .map((mockQuestion) => ({
+      question_id: mockQuestion.question_id,
+      question_order: mockQuestion.question_order,
+      question:
+        questionMap.has(mockQuestion.question_id)
+          ? {
+              ...questionMap.get(mockQuestion.question_id)!,
+              question_options:
+                optionsByQuestion.get(mockQuestion.question_id) ?? [],
+            }
+          : null,
+    }))
+    .filter((item) => item.question !== null);
+
+  const answerMap = new Map<string, AttemptAnswer>(
+    attemptAnswers.map((answer) => [answer.question_id, answer]),
+  );
+
+  const isQuestionCorrect = (item: MockQuestion) => {
+    const question = getSingleRelation(item.question);
+    const answer = answerMap.get(item.question_id);
+
+    if (!question || !answer || answer.selected_options.length === 0) {
+      return false;
+    }
+
+    const correctIds = question.question_options
+      .filter((option) => option.is_correct)
+      .map((option) => option.id);
+
+    return areSameOptions(answer.selected_options, correctIds);
+  };
 
   const totalQuestions = questions.length;
 
@@ -240,13 +332,12 @@ export default async function ResultsPage({
     (answer) => answer.selected_options.length > 0,
   ).length;
 
-  const correctQuestions = attemptAnswers.filter(
-    (answer) => answer.is_correct === true,
-  ).length;
+  const correctQuestions = questions.filter(isQuestionCorrect).length;
 
-  const incorrectQuestions = attemptAnswers.filter(
-    (answer) => answer.is_correct === false,
-  ).length;
+  const incorrectQuestions = Math.max(
+    0,
+    answeredQuestions - correctQuestions,
+  );
 
   const unansweredQuestions = Math.max(
     0,
@@ -262,8 +353,8 @@ export default async function ResultsPage({
   );
 
   const passingScore =
-    mock?.passing_score !== null &&
-    mock?.passing_score !== undefined
+    mock.passing_score !== null &&
+    mock.passing_score !== undefined
       ? Number(mock.passing_score)
       : null;
 
@@ -272,19 +363,9 @@ export default async function ResultsPage({
       ? percentage >= 70
       : percentage >= passingScore;
 
-  // ---------------------------------------------------------
+  // =========================================================
   // CATEGORY PERFORMANCE
-  // ---------------------------------------------------------
-
-  const answerMap = new Map<
-    string,
-    AttemptAnswer
-  >(
-    attemptAnswers.map((answer) => [
-      answer.question_id,
-      answer,
-    ]),
-  );
+  // =========================================================
 
   const categoryMap = new Map<
     string,
@@ -314,7 +395,7 @@ export default async function ResultsPage({
       item.question_id,
     );
 
-    if (answer?.is_correct === true) {
+    if (isQuestionCorrect(item)) {
       current.correct += 1;
     }
 
@@ -339,9 +420,9 @@ export default async function ResultsPage({
       (a, b) => b.percentage - a.percentage,
     );
 
-  // ---------------------------------------------------------
+  // =========================================================
   // TIME
-  // ---------------------------------------------------------
+  // =========================================================
 
   const startedAt = attempt.started_at
     ? new Date(attempt.started_at)
@@ -386,16 +467,10 @@ export default async function ResultsPage({
       })
     : "—";
 
-  // ---------------------------------------------------------
-  // RENDER
-  // ---------------------------------------------------------
-
   return (
     <main className="min-h-screen bg-[#111827] text-white">
       <div className="aws-grid min-h-screen">
         <div className="mx-auto max-w-7xl px-5 py-8">
-          {/* HEADER */}
-
           <header className="mb-8 flex flex-col justify-between gap-5 border-b border-[#3b4556] pb-6 md:flex-row md:items-end">
             <div>
               <div className="font-mono text-xs uppercase tracking-[0.25em] text-[#ff9900]">
@@ -658,7 +733,7 @@ export default async function ResultsPage({
                   .filter((option) => option.is_correct)
                   .map((option) => option.id);
                 const isUnanswered = selectedIds.length === 0;
-                const isCorrect = answer?.is_correct === true;
+                const isCorrect = isQuestionCorrect(item);
 
                 return (
                   <div key={question.id} className="p-6">
@@ -714,14 +789,14 @@ export default async function ResultsPage({
                     </div>
 
                     {question.explanation && (
-                      <details className="mt-4 border border-[#3b4556]">
-                        <summary className="cursor-pointer px-4 py-3 font-mono text-xs uppercase tracking-wider text-[#ff9900]">
-                          View Explanation
-                        </summary>
-                        <p className="border-t border-[#3b4556] px-4 py-4 text-sm leading-6 text-gray-300">
+                      <div className="mt-4 border border-[#3b4556]">
+                        <div className="border-b border-[#3b4556] px-4 py-3 font-mono text-xs uppercase tracking-wider text-[#ff9900]">
+                          Explanation
+                        </div>
+                        <p className="px-4 py-4 text-sm leading-6 text-gray-300">
                           {question.explanation}
                         </p>
-                      </details>
+                      </div>
                     )}
                   </div>
                 );

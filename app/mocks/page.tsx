@@ -3,6 +3,49 @@ import Link from "next/link";
 import { requireCore } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
+import ExamRunner from "@/components/exam/exam-runner";
+
+type PageProps = {
+  params: Promise<{
+    attemptId: string;
+  }>;
+};
+
+type ExamSlot = {
+  id: string;
+  mock_id: string;
+  starts_at: string;
+  ends_at: string;
+  status: string;
+  mocks:
+    | {
+        id: string;
+        title: string;
+        description: string | null;
+        duration_minutes: number;
+        passing_score: number | null;
+        status: string;
+        settings: unknown;
+      }
+    | {
+        id: string;
+        title: string;
+        description: string | null;
+        duration_minutes: number;
+        passing_score: number | null;
+        status: string;
+        settings: unknown;
+      }[]
+    | null;
+};
+
+type Attempt = {
+  id: string;
+  slot_id: string;
+  status: string;
+  percentage: number | null;
+};
+
 function isValidUuid(value: unknown): value is string {
   return (
     typeof value === "string" &&
@@ -12,25 +55,41 @@ function isValidUuid(value: unknown): value is string {
   );
 }
 
-function isValidDate(value: unknown): value is string {
-  return (
-    typeof value === "string" &&
-    !Number.isNaN(
-      new Date(value).getTime(),
-    )
-  );
+function normalizeSettings(value: unknown): Record<string, boolean> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).filter(
+      ([, setting]) => typeof setting === "boolean",
+    ),
+  ) as Record<string, boolean>;
+}
+
+function normalizeSelectedOptions(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return [
+    ...new Set(
+      value.filter(
+        (item): item is string =>
+          typeof item === "string" && isValidUuid(item),
+      ),
+    ),
+  ];
 }
 
 export default async function MocksPage() {
   const user = await requireCore();
   const supabase = await createClient();
 
-  const now = new Date();
+  const now = Date.now();
+  const nowIso = new Date(now).toISOString();
 
-  const {
-    data: slots,
-    error: slotsError,
-  } = await supabase
+  const { data: slots, error: slotsError } = await supabase
     .from("exam_slots")
     .select(
       `
@@ -51,154 +110,99 @@ export default async function MocksPage() {
       `,
     )
     .eq("status", "scheduled")
-    .lte(
-      "starts_at",
-      now.toISOString(),
-    )
-    .gt(
-      "ends_at",
-      now.toISOString(),
-    )
-    .order("ends_at", {
-      ascending: true,
-    });
+    .lte("starts_at", nowIso)
+    .gt("ends_at", nowIso)
+    .order("ends_at", { ascending: true });
 
   if (slotsError) {
-    throw new Error(
-      "Failed to load examinations.",
-    );
+    console.error("Failed to load examinations:", slotsError);
+    throw new Error("Failed to load examinations.");
   }
 
-  const validSlots = (
-    slots ?? []
-  ).filter((slot) => {
+  const validSlots = (slots ?? []).filter((slot) => {
+    if (
+      !isValidUuid(slot.id) ||
+      !isValidUuid(slot.mock_id) ||
+      !slot.starts_at ||
+      !slot.ends_at
+    ) {
+      return false;
+    }
+
     const mock = Array.isArray(slot.mocks)
       ? slot.mocks[0]
       : slot.mocks;
 
-    if (!mock) {
-      return false;
-    }
-
     if (
-      !isValidUuid(slot.id) ||
-      !isValidUuid(slot.mock_id) ||
-      !isValidUuid(mock.id)
+      !mock ||
+      !isValidUuid(mock.id) ||
+      mock.id !== slot.mock_id ||
+      mock.status !== "published"
     ) {
       return false;
     }
 
-    if (slot.mock_id !== mock.id) {
-      return false;
-    }
-
-    if (mock.status !== "published") {
-      return false;
-    }
+    const startsAt = Date.parse(slot.starts_at);
+    const endsAt = Date.parse(slot.ends_at);
 
     if (
-      !isValidDate(slot.starts_at) ||
-      !isValidDate(slot.ends_at)
+      Number.isNaN(startsAt) ||
+      Number.isNaN(endsAt) ||
+      endsAt <= startsAt ||
+      startsAt > now ||
+      endsAt <= now
     ) {
       return false;
     }
 
-    const startsAt = new Date(
-      slot.starts_at,
-    ).getTime();
-
-    const endsAt = new Date(
-      slot.ends_at,
-    ).getTime();
-
-    if (endsAt <= startsAt) {
-      return false;
-    }
-
-    if (
-      endsAt <= now.getTime() ||
-      startsAt > now.getTime()
-    ) {
-      return false;
-    }
-
-    if (
-      !Number.isInteger(
-        mock.duration_minutes,
-      ) ||
-      mock.duration_minutes <= 0
-    ) {
-      return false;
-    }
-
-    return true;
+    return (
+      Number.isInteger(mock.duration_minutes) &&
+      mock.duration_minutes > 0
+    );
   });
 
-  const slotIds = validSlots.map(
-    (slot) => slot.id,
-  );
+  const slotIds = validSlots.map((slot) => slot.id);
 
-  const {
-    data: attempts,
-    error: attemptsError,
-  } = slotIds.length
-    ? await supabase
-        .from("attempts")
-        .select(
-          "id, slot_id, status, percentage",
-        )
-        .eq(
-          "user_id",
-          user.profile.id,
-        )
-        .in("slot_id", slotIds)
-    : {
-        data: [],
-        error: null,
-      };
+  let attempts: Attempt[] = [];
 
-  if (attemptsError) {
-    throw new Error(
-      "Failed to load examination attempts.",
-    );
+  if (slotIds.length > 0) {
+    const {
+      data,
+      error: attemptsError,
+    } = await supabase
+      .from("attempts")
+      .select("id, slot_id, status, percentage")
+      .eq("user_id", user.profile.id)
+      .in("slot_id", slotIds);
+
+    if (attemptsError) {
+      console.error(
+        "Failed to load examination attempts:",
+        attemptsError,
+      );
+      throw new Error("Failed to load examination attempts.");
+    }
+
+    attempts = data ?? [];
   }
 
-  const attemptMap = new Map<
-    string,
-    {
-      id: string;
-      slot_id: string;
-      status: string;
-      percentage: number | null;
-    }
-  >();
+  const attemptMap = new Map<string, Attempt>();
 
-  for (const attempt of attempts ?? []) {
+  for (const attempt of attempts) {
     if (
-      !isValidUuid(attempt.id) ||
-      !isValidUuid(attempt.slot_id)
-    ) {
-      continue;
-    }
-
-    if (
-      attempt.slot_id &&
+      isValidUuid(attempt.id) &&
+      isValidUuid(attempt.slot_id) &&
       !attemptMap.has(attempt.slot_id)
     ) {
-      attemptMap.set(
-        attempt.slot_id,
-        {
-          id: attempt.id,
-          slot_id: attempt.slot_id,
-          status: attempt.status,
-          percentage:
-            attempt.percentage !== null
-              ? Number(
-                  attempt.percentage,
-                )
-              : null,
-        },
-      );
+      attemptMap.set(attempt.slot_id, {
+        id: attempt.id,
+        slot_id: attempt.slot_id,
+        status: attempt.status,
+        percentage:
+          attempt.percentage === null
+            ? null
+            : Number(attempt.percentage),
+      });
     }
   }
 
@@ -235,9 +239,7 @@ export default async function MocksPage() {
           ) : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {validSlots.map((slot) => {
-                const mock = Array.isArray(
-                  slot.mocks,
-                )
+                const mock = Array.isArray(slot.mocks)
                   ? slot.mocks[0]
                   : slot.mocks;
 
@@ -245,18 +247,14 @@ export default async function MocksPage() {
                   return null;
                 }
 
-                const attempt =
-                  attemptMap.get(slot.id);
+                const attempt = attemptMap.get(slot.id);
 
                 const completed =
-                  attempt?.status ===
-                    "submitted" ||
-                  attempt?.status ===
-                    "auto_submitted";
+                  attempt?.status === "submitted" ||
+                  attempt?.status === "auto_submitted";
 
                 const inProgress =
-                  attempt?.status ===
-                  "in_progress";
+                  attempt?.status === "in_progress";
 
                 return (
                   <section
@@ -270,8 +268,7 @@ export default async function MocksPage() {
                         </span>
 
                         <span className="font-mono text-[9px] uppercase text-gray-500">
-                          {mock.duration_minutes}{" "}
-                          MIN
+                          {mock.duration_minutes} MIN
                         </span>
                       </div>
                     </div>
@@ -292,24 +289,16 @@ export default async function MocksPage() {
                           <span>Ends</span>
 
                           <span className="text-gray-300">
-                            {formatDate(
-                              slot.ends_at,
-                            )}
+                            {formatDate(slot.ends_at)}
                           </span>
                         </div>
 
-                        {mock.passing_score !==
-                          null && (
+                        {mock.passing_score !== null && (
                           <div className="flex justify-between">
-                            <span>
-                              Passing
-                            </span>
+                            <span>Passing</span>
 
                             <span className="text-gray-300">
-                              {
-                                mock.passing_score
-                              }
-                              %
+                              {mock.passing_score}%
                             </span>
                           </div>
                         )}
@@ -322,20 +311,14 @@ export default async function MocksPage() {
                               Completed
                             </p>
 
-                            {attempt?.percentage !==
-                              null &&
-                              attempt?.percentage !==
-                                undefined && (
+                            {attempt?.percentage !== null &&
+                              attempt?.percentage !== undefined && (
                                 <p className="mt-1 font-mono text-sm text-[#ff9900]">
-                                  {attempt.percentage.toFixed(
-                                    1,
-                                  )}
-                                  %
+                                  {attempt.percentage.toFixed(1)}%
                                 </p>
                               )}
                           </div>
-                        ) : inProgress &&
-                          attempt ? (
+                        ) : inProgress && attempt ? (
                           <Link
                             href={`/exam/${attempt.id}`}
                             className="block bg-[#ff9900] px-4 py-4 text-center font-mono text-xs font-bold uppercase tracking-wider text-[#111827] hover:bg-orange-400"
@@ -370,12 +353,9 @@ function formatDate(value: string) {
     return "Invalid date";
   }
 
-  return new Intl.DateTimeFormat(
-    "en-IN",
-    {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    },
-  ).format(date);
+  return new Intl.DateTimeFormat("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Kolkata",
+  }).format(date);
 }

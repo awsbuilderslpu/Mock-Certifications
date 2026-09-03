@@ -20,37 +20,37 @@ export default async function AdminResultDetailPage({
   const supabase = await createClient();
 
   const { data: attempt, error: attemptError } =
-    await supabase
-      .from("attempts")
-      .select(`
+  await supabase
+    .from("attempts")
+    .select(`
+      id,
+      user_id,
+      mock_id,
+      slot_id,
+      started_at,
+      submitted_at,
+      score,
+      percentage,
+      status,
+      created_at,
+      profiles!attempts_user_id_fkey (
+        full_name,
+        email
+      ),
+      mocks!attempts_mock_id_fkey (
         id,
-        user_id,
-        mock_id,
-        slot_id,
-        started_at,
-        submitted_at,
-        score,
-        percentage,
-        status,
-        created_at,
-        profiles (
-          full_name,
-          email
-        ),
-        mocks (
-          id,
-          title,
-          description,
-          duration_minutes,
-          passing_score
-        ),
-        exam_slots (
-          starts_at,
-          ends_at
-        )
-      `)
-      .eq("id", attemptId)
-      .single();
+        title,
+        description,
+        duration_minutes,
+        passing_score
+      ),
+      exam_slots!attempts_slot_id_fkey (
+        starts_at,
+        ends_at
+      )
+    `)
+    .eq("id", attemptId)
+    .maybeSingle();
 
   if (attemptError || !attempt) {
     notFound();
