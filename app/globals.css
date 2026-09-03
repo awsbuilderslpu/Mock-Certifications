@@ -1,26 +1,67 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --aws-navy: #111827;
+  --aws-navy-light: #151e2d;
+  --aws-orange: #ff9900;
+  --aws-border: #2d3544;
+  --aws-text-muted: #9ca3af;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--aws-navy);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--aws-navy);
+  color: white;
+}
+
+/* AWS Student Builder style grid */
+.aws-grid {
+  background-image:
+    linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.055) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.055) 1px,
+      transparent 1px
+    );
+  background-size: 44px 44px;
+}
+
+/* Technical / monospace labels */
+.font-mono {
+  font-family: var(--font-geist-mono), monospace;
+}
+
+/* AWS orange selection */
+::selection {
+  background: var(--aws-orange);
+  color: #111827;
+}
+
+/* Thin scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--aws-navy);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--aws-border);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--aws-orange);
 }
