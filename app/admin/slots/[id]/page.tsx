@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { cancelExamSlot } from "@/lib/actions/exam-slots";
+import { formatIstDateTime } from "@/lib/utils/timezone";
 
 type PageProps = {
   params: Promise<{
@@ -96,10 +97,7 @@ export default async function ExamSlotDetailsPage({
   const formatDate = (value: string | null) => {
     if (!value) return "—";
 
-    return new Date(value).toLocaleString("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+    return formatIstDateTime(value);
   };
 
   const getStatusClass = (status: string) => {
@@ -152,9 +150,10 @@ export default async function ExamSlotDetailsPage({
               slot.status !== "completed" && (
                 <form
                   action={async () => {
+                    "use server";
                     await cancelExamSlot(slot.id);
                   }}
-                >
+                  >
                   <button
                     type="submit"
                     className="border border-red-500/50 px-4 py-2 font-mono text-xs font-bold uppercase text-red-400 transition hover:bg-red-500/10"

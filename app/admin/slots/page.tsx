@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { formatIstDateTime } from "@/lib/utils/timezone";
 
 export default async function AdminSlotsPage() {
   await requireAdmin();
@@ -165,8 +166,5 @@ export default async function AdminSlotsPage() {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-IN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+  return formatIstDateTime(value);
 }

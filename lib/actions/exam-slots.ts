@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { parseIstDateTimeLocal } from "@/lib/utils/timezone";
 
 type SlotInput = {
   mockId: string;
@@ -29,23 +30,6 @@ function isValidUuid(value: unknown): value is string {
   );
 }
 
-function parseDate(value: unknown): Date | null {
-  if (
-    typeof value !== "string" ||
-    value.length > 100
-  ) {
-    return null;
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return date;
-}
-
 export async function createExamSlot(
   input: SlotInput,
 ): Promise<ActionResult> {
@@ -69,11 +53,11 @@ export async function createExamSlot(
     };
   }
 
-  const startsAt = parseDate(
+  const startsAt = parseIstDateTimeLocal(
     input.startsAt,
   );
 
-  const endsAt = parseDate(
+  const endsAt = parseIstDateTimeLocal(
     input.endsAt,
   );
 

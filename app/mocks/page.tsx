@@ -375,6 +375,7 @@ function formatDate(value: string) {
     {
       dateStyle: "medium",
       timeStyle: "short",
+      timeZone: "Asia/Kolkata",
     },
   ).format(date);
 }

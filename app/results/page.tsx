@@ -314,6 +314,7 @@ export default async function ResultsPage() {
                           {
                             dateStyle: "medium",
                             timeStyle: "short",
+                            timeZone: "Asia/Kolkata",
                           },
                         )
                       : "—";
@@ -407,6 +408,8 @@ export default async function ResultsPage() {
                                   {
                                     dateStyle:
                                       "medium",
+                                    timeZone:
+                                      "Asia/Kolkata",
                                   },
                                 )}
                               </span>

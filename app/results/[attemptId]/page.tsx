@@ -382,6 +382,7 @@ export default async function ResultsPage({
     ? submittedAt.toLocaleString("en-IN", {
         dateStyle: "medium",
         timeStyle: "short",
+        timeZone: "Asia/Kolkata",
       })
     : "—";
 
