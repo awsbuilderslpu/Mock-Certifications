@@ -4,7 +4,7 @@ import Link from "next/link";
 const features = [
   {
     number: "01",
-    title: "500+ QUESTIONS",
+    title: "2000+ QUESTIONS",
     description:
       "A growing certification-focused question bank covering AWS services, domains, difficulty levels, and real exam-style scenarios.",
   },
@@ -75,7 +75,7 @@ const certifications = [
 ];
 
 const advantages = [
-  "500+ certification-focused questions",
+  "2000+ certification-focused questions",
   "Full-length timed mock examinations",
   "Detailed post-exam explanations",
   "Performance and attempt history",
@@ -148,7 +148,7 @@ export default function Home() {
               </div>
 
               <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 font-mono text-[10px] uppercase tracking-[0.2em] text-gray-600">
-                <span>500+ QUESTIONS</span>
+                <span>2000+ QUESTIONS</span>
                 <span>•</span>
                 <span>FULL MOCKS</span>
                 <span>•</span>
@@ -187,7 +187,7 @@ export default function Home() {
                       </p>
 
                       <p className="mt-2 font-mono text-2xl text-[#ff9900]">
-                        500+
+                        2000+
                       </p>
                     </div>
 
@@ -230,7 +230,7 @@ export default function Home() {
                     </p>
 
                     <p className="mt-1 font-mono text-xs text-white">
-                      YOUR PREPARATION ADVANTAGE.
+                      YOUR COMMUNITY. YOUR GROWTH. YOUR ADVANTAGE.
                     </p>
                   </div>
                 </div>
@@ -245,7 +245,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-7xl grid-cols-2 sm:grid-cols-4">
 
           <Stat
-            value="500+"
+            value="2000+"
             label="CURATED QUESTIONS"
           />
 
@@ -272,14 +272,14 @@ export default function Home() {
 
           <SectionHeader
             eyebrow="// THE QUESTION BANK"
-            title="500+ QUESTIONS. ONE PLACE."
+            title="2000+ QUESTIONS. ONE PLACE."
             description="Stop jumping between random question websites. Build your preparation around a growing bank of certification-focused AWS questions."
           />
 
           <div className="mt-12 grid border-l border-t border-[#2d3544] sm:grid-cols-2 lg:grid-cols-4">
 
             <Metric
-              value="500+"
+              value="2000+"
               label="QUESTIONS"
             />
 
@@ -656,7 +656,7 @@ export default function Home() {
 
             <div className="border-l-2 border-[#ff9900] pl-5">
               <p className="font-mono text-3xl text-[#ff9900]">
-                500+
+                2000+
               </p>
 
               <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-gray-500">
@@ -735,7 +735,7 @@ export default function Home() {
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
 
                 {[
-                  "500+ question bank",
+                  "2000+ question bank",
                   "Internal mock examinations",
                   "Scheduled exam sessions",
                   "Detailed post-exam review",
