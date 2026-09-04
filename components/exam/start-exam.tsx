@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { startAttempt } from "@/lib/actions/attempts";
+import { setScreenShareStream } from "@/lib/exam-security";
 
 type Props = {
   slot: {
@@ -77,11 +78,15 @@ export default function StartExam({
       screenStream =
         await navigator.mediaDevices.getDisplayMedia({
           video: {
+            displaySurface: "monitor",
+            monitorTypeSurfaces: "include",
+            selfBrowserSurface: "exclude",
+            surfaceSwitching: "exclude",
             frameRate: {
               ideal: 5,
               max: 10,
             },
-          },
+          } as MediaTrackConstraints,
           audio: false,
         });
 
@@ -96,6 +101,14 @@ export default function StartExam({
           "A valid screen sharing stream is required.",
         );
       }
+
+      if (videoTrack.getSettings().displaySurface !== "monitor") {
+        throw new Error(
+          "Please share your entire screen. Browser tabs and windows are not allowed.",
+        );
+      }
+
+      setScreenShareStream(screenStream);
 
       if (fullscreenRequired) {
         setStep("fullscreen");
@@ -144,9 +157,11 @@ export default function StartExam({
         } catch {}
       }
 
-      screenStream?.getTracks().forEach(
-        (track) => track.stop(),
-      );
+      if (screenStream) {
+        screenStream.getTracks().forEach(
+          (track) => track.stop(),
+        );
+      }
 
       setStep("error");
 
@@ -249,7 +264,8 @@ export default function StartExam({
                       <span className="mr-2 text-[#ff9900]">
                         →
                       </span>
-                      Tab switching will be recorded.
+                      Switching tabs or windows terminates the
+                      examination.
                     </li>
                   )}
 
@@ -258,8 +274,8 @@ export default function StartExam({
                       →
                     </span>
                     Copy, paste, context-menu and other
-                    restricted actions are blocked during
-                    the examination.
+                    restricted actions terminate the
+                    examination.
                   </li>
                 </ul>
               </div>
